@@ -7,7 +7,17 @@ enum PlayerRole {
 
 globalvar Vector circleCenter = Vector(-208.7, 0.0, -16.4);
 playervar PlayerRole role;
-playervar PlayerTask[] tasks;
+playervar Task[] incompleteTasks;
+playervar Task[] completeTasks = EmptyArray();
+playervar define numTasks = 0;
+playervar define hudTaskString = "";
+playervar define hudCompleteTaskString = "";
+playervar define hudInteractString = "";
+playervar Task interactableTask;
+playervar define isTaskInProgress = false;
+playervar define taskProgressTime;
+
+
 
 rule: "Player Setup"
 Event.OnPlayerJoin
@@ -56,43 +66,79 @@ void assignRoles(ref define imposters) {
 }
 
 void assignTasks(ref define player, ref define numTasks) {
-    define tempTasks = ChooseArray(global_tasks, numTasks);
-    player.tasks = EmptyArray();
-    for (define i = 0; i < numTasks; i++) {
-        ModifyVariable(player.tasks, Operation.AppendToArray, new PlayerTask(tempTasks[i]))
+    player.numTasks = numTasks;
+    player.incompleteTasks = ChooseArray(global_tasks, numTasks);
+    totalTaskCount += 2;
+}
+
+void updateHudStrings(ref define player) {
+    player.hudTaskString = <"<0><1><2><3><4><5>",
+        player.incompleteTasks.Length > 0 ? <"1. <0>\n", player.incompleteTasks[0].Name> : "",
+        player.incompleteTasks.Length > 1 ? <"2. <0>\n", player.incompleteTasks[1].Name> : "",
+        player.incompleteTasks.Length > 2 ? <"3. <0>\n", player.incompleteTasks[2].Name> : "",
+        player.incompleteTasks.Length > 3 ? <"4. <0>\n", player.incompleteTasks[3].Name> : "",
+        player.incompleteTasks.Length > 4 ? <"5. <0>\n", player.incompleteTasks[4].Name> : "",
+        player.incompleteTasks.Length > 5 ? <"6. <0>\n", player.incompleteTasks[5].Name> : ""
+    >;
+    player.hudCompleteTaskString = <"<0><1><2><3><4><5>",
+        player.completeTasks.Length > 0 ? <"1. <0>\n", player.completeTasks[0].Name> : "",
+        player.completeTasks.Length > 1 ? <"2. <0>\n", player.completeTasks[1].Name> : "",
+        player.completeTasks.Length > 2 ? <"3. <0>\n", player.completeTasks[2].Name> : "",
+        player.completeTasks.Length > 3 ? <"4. <0>\n", player.completeTasks[3].Name> : "",
+        player.completeTasks.Length > 4 ? <"5. <0>\n", player.completeTasks[4].Name> : "",
+        player.completeTasks.Length > 5 ? <"6. <0>\n", player.completeTasks[5].Name> : ""
+    >;
+}
+
+void playerUpdate(ref define player) {
+    if (player.isTaskInProgress) {
+        updatePlayerTaskProgress(player);
+    } else {
+        findPlayerNearestTask(player);
     }
 }
 
-void drawTasksHUD(ref define player, ref define numTasks) {
+void updatePlayerTaskProgress(ref define player) {
+    // Still near enough to task to work on it, and holding the button?
+    if (!IsButtonHeld(player, Button.Interact) || DistanceBetween(PositionOf(player), player.interactableTask.Position) > 3) {
+        player.isTaskInProgress = false;
+        return;
+    }
+    player.taskProgressTime++;
+    // If task done, move it to the complete list
+    if (player.taskProgressTime >= player.interactableTask.Duration) {
+        ModifyVariable(player.completeTasks, Operation.AppendToArray, player.interactableTask);
+        ModifyVariable(player.incompleteTasks, Operation.RemoveFromArrayByValue, player.interactableTask);
+        player.isTaskInProgress = false;
+        totalCompleteTaskCount++;
+        updateHudStrings(player);
+    }
+}
 
-    define task0 = numTasks > 0 ? <"1. <0> <1>\n", player.tasks[0].IsComplete ? "♥" : "_", player.tasks[0].Task.Name> : ""
-    define task1 = numTasks > 1 ? <"2. <0> <1>\n", player.tasks[1].IsComplete ? "♥" : "_", player.tasks[1].Task.Name> : ""
-    define task2 = numTasks > 2 ? <"3. <0> <1>\n", player.tasks[2].IsComplete ? "♥" : "_", player.tasks[2].Task.Name> : ""
-    define task3 = numTasks > 3 ? <"4. <0> <1>\n", player.tasks[3].IsComplete ? "♥" : "_", player.tasks[3].Task.Name> : ""
-    define task4 = numTasks > 4 ? <"5. <0> <1>\n", player.tasks[4].IsComplete ? "♥" : "_", player.tasks[4].Task.Name> : ""
-    define task5 = numTasks > 5 ? <"6. <0> <1>\n", player.tasks[5].IsComplete ? "♥" : "_", player.tasks[5].Task.Name> : ""
 
-    define taskString = "<0><1><2><3><4><5>", task0, task1, task2, task3, task4, task5>
+void findPlayerNearestTask(ref define player) {
+    player.hudInteractString = "";
+    // Find first incomplete task within 3 meters
+    for (define i=0; i < player.incompleteTasks.Length; i++) {
+        if (DistanceBetween(PositionOf(player), player.incompleteTasks[i].Position) <= 3) {
+            player.hudInteractString = player.incompleteTasks[i].Name;
+            player.interactableTask = player.incompleteTasks[i];
 
-    CreateHudText(
-        VisibleTo   : player,
-        Text        : "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n",
-        TextColor   : Color.White,
-        Location    : Location.Left,
-        Spectators  : Spectators.VisibleNever,
-        Reevaluation: HudTextRev.String,
-        SortOrder   : 1
-    );
+            if (IsButtonHeld(player, Button.Interact)) {
+                player.isTaskInProgress = true;
+                player.taskProgressTime = 0;
+                return;
+            }
+        }
+    }
+}
 
-    CreateHudText(
-        VisibleTo   : player,
-        Text        : taskString,
-        TextColor   : Color.White,
-        Header      : "Tasks",
-        HeaderColor : Color.White,
-        Location    : Location.Left,
-        Spectators  : Spectators.VisibleNever,
-        Reevaluation: HudTextRev.String,
-        SortOrder   : 1
-    );
+rule: "Player Update Loop"
+Event.OngoingPlayer
+if (gameState == GameState.Play)
+{
+    while (gameState == GameState.Play) {
+        playerUpdate(EventPlayer());
+        Wait(0.25);
+    }
 }

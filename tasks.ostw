@@ -18,27 +18,23 @@ class Task {
             EffectRev.VisibleTo
         );
         CreateInWorldText(
-            FilteredArray(AllPlayers(), DistanceBetween(PositionOf(ArrayElement()), Position) < 5),
+            FilteredArray(AllPlayers(), DistanceBetween(PositionOf(ArrayElement()), Position) <= 3),
             Name, Position, 4, Clipping.ClipAgainstSurfaces,
             InworldTextRev.VisibleTo,
             Color.White
         );
-    }
-}
-
-class PlayerTask {
-    public Task Task;
-    public define IsComplete;
-
-    public PlayerTask(ref define task) {
-        this.Task = task;
-        this.IsComplete = false;
+        CreateInWorldText(
+            FilteredArray(AllLivingPlayers(), DistanceBetween(PositionOf(ArrayElement()), Position) > 3 && ArrayElement().incompleteTasks.Contains(this)),
+            "▼", Position, 4, Clipping.DoNotClip,
+            InworldTextRev.VisibleTo,
+            Color.Green
+        );
     }
 }
 
 globalvar Task[] global_tasks = [
-    new Task("Collect Butterflies", Vector(-189.9, 3.7, -41.6), 1.0),
-    new Task("Serve The Wine", Vector(-186.7, 2.0, -19.8), 1.0)
+    new Task("Collect Butterflies", Vector(-189.9, 3.7, -41.6), 10.0),
+    new Task("Serve The Wine", Vector(-186.7, 2.0, -19.8), 15.0)
 ];
 
 void drawTasks() {

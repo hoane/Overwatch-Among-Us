@@ -1,0 +1,121 @@
+import "main.ostw";
+
+void drawGlobalHUD() {
+    CreateHudText(
+        VisibleTo   : AllPlayers(),
+        Header      : <"Crew Tasks Complete: <0> / <1>", totalCompleteTaskCount, totalTaskCount>,
+        HeaderColor : Color.LimeGreen,
+        Location    : Location.Left,
+        Spectators  : Spectators.VisibleNever,
+        Reevaluation: HudTextRev.String,
+        SortOrder   : 0
+    )
+
+    CreateHudText(
+        VisibleTo   : AllPlayers(),
+        Text        : " \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n",
+        TextColor   : Color.White,
+        Location    : Location.Left,
+        Spectators  : Spectators.VisibleNever,
+        Reevaluation: HudTextRev.None,
+        SortOrder   : 1
+    );
+
+    CreateHudText(
+        VisibleTo  : FilteredArray(AllPlayers(), ArrayElement().role == PlayerRole.CREW),
+        Header     : "CREWMATE",
+        HeaderColor: Color.SkyBlue,
+        Location   : Location.Right,
+        SortOrder  : 0,
+        Spectators : Spectators.VisibleNever,
+        Reevaluation: HudTextRev.None
+    );
+
+    CreateHudText(
+        VisibleTo  : FilteredArray(AllPlayers(), ArrayElement().role == PlayerRole.IMPOSTER),
+        Header     : "IMPOSTER",
+        HeaderColor: Color.Red,
+        Location   : Location.Right,
+        SortOrder  : 0,
+        Spectators : Spectators.VisibleNever,
+        Reevaluation: HudTextRev.None
+    );
+}
+
+void drawPlayerHUD(ref define player) {
+    CreateHudText(
+        VisibleTo   : player,
+        Text        : player.hudTaskString,
+        TextColor   : Color.White,
+        Header      : "Tasks",
+        HeaderColor : Color.White,
+        Location    : Location.Left,
+        Spectators  : Spectators.VisibleNever,
+        Reevaluation: HudTextRev.String,
+        SortOrder   : 2
+    );
+
+    CreateHudText(
+        VisibleTo   : player,
+        Text        : player.hudCompleteTaskString,
+        TextColor   : Color.Green,
+        Header      : "Done",
+        HeaderColor : Color.Green,
+        Location    : Location.Left,
+        Spectators  : Spectators.VisibleNever,
+        Reevaluation: HudTextRev.String,
+        SortOrder   : 3
+    );
+
+    CreateHudText(
+        VisibleTo   : player,
+        Text        : " \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n",
+        TextColor   : Color.Green,
+        Location    : Location.Right,
+        Spectators  : Spectators.VisibleNever,
+        Reevaluation: HudTextRev.None,
+        SortOrder   : 2
+    );
+
+    CreateHudText(
+        VisibleTo   : player,
+        Header      : InputBindingString(ButtonValue(Button.Interact)),
+        HeaderColor : Color.Green,
+        Text        : player.hudInteractString,
+        TextColor   : Color.Green,
+        Location    : Location.Right,
+        Spectators  : Spectators.VisibleNever,
+        Reevaluation: HudTextRev.VisibleToAndString,
+        SortOrder   : 3
+    );
+    CreateHudText(
+        VisibleTo   : player.role == PlayerRole.IMPOSTER ? player : EmptyArray(),
+        Header      : InputBindingString(ButtonValue(Button.Ultimate)),
+        HeaderColor : Color.Red,
+        Text        : "Sabotage",
+        TextColor   : Color.Red,
+        Location    : Location.Right,
+        Spectators  : Spectators.VisibleNever,
+        Reevaluation: HudTextRev.VisibleTo,
+        SortOrder   : 4
+    );
+
+    CreateHudText(
+        VisibleTo   : player.isTaskInProgress ? player : EmptyArray(),
+        Header      : <"Task Progress: <0> / <1>", player.taskProgressTime, player.interactableTask.Duration>,
+        HeaderColor : Color.Orange,
+        Location    : Location.Top,
+        Spectators  : Spectators.VisibleNever,
+        Reevaluation: HudTextRev.VisibleToAndString,
+        SortOrder   : 2
+    );
+    CreateHudText(
+        VisibleTo   : player,
+        Text        : <"Debug: InC: <0> / C: <1>", player.incompleteTasks.Length, player.completeTasks.Length>,
+        TextColor   : Color.White,
+        Location    : Location.Top,
+        Spectators  : Spectators.VisibleNever,
+        Reevaluation: HudTextRev.VisibleToAndString,
+        SortOrder   : 3
+    );
+}

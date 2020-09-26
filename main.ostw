@@ -3,6 +3,7 @@ import "player.ostw";
 import "spawnBots.ostw";
 import "tasks.ostw";
 import "util.ostw";
+import "hud.ostw";
 
 enum GameState {
     Waiting,
@@ -11,6 +12,8 @@ enum GameState {
 
 globalvar GameState gameState = GameState.Waiting;
 globalvar define started = false;
+globalvar define totalTaskCount = 0;
+globalvar define totalCompleteTaskCount = 0;
 
 
 rule: "Global: Setup"
@@ -31,25 +34,7 @@ if (gameState == GameState.Play)
     markCenter();
     drawTasks();
     assignRoles(2);
-
-    CreateHudText(
-        VisibleTo  : FilteredArray(AllPlayers(), ArrayElement().role == PlayerRole.CREW),
-        Header     : "CREWMATE",
-        HeaderColor: Color.SkyBlue,
-        Location   : Location.Right,
-        SortOrder  : 0,
-        Spectators : Spectators.VisibleNever,
-        Reevaluation: HudTextRev.None
-    );
-    CreateHudText(
-        VisibleTo  : FilteredArray(AllPlayers(), ArrayElement().role == PlayerRole.IMPOSTER),
-        Header     : "IMPOSTER",
-        HeaderColor: Color.Red,
-        Location   : Location.Right,
-        SortOrder  : 0,
-        Spectators : Spectators.VisibleNever,
-        Reevaluation: HudTextRev.None
-    );
+    drawGlobalHUD();
 }
 
 rule: "Player: Start Play"
@@ -66,7 +51,8 @@ if (gameState == GameState.Play)
     );
 
     assignTasks(EventPlayer(), 2);
-    drawTasksHUD(EventPlayer(), 2);
+    drawPlayerHUD(EventPlayer());
+    updateHudStrings(EventPlayer());
 }
 
 
@@ -75,6 +61,6 @@ if (!started)
 if (IsTrueForAll(AllPlayers(), HasSpawned(ArrayElement()) || IsDead(ArrayElement())))
 {
     started = true;
-    Wait(10);
+    Wait(5);
     gameState = GameState.Play;
 }
