@@ -1,0 +1,72 @@
+import "customGameSettings.json";
+import "player.ostw";
+import "spawnBots.ostw";
+import "tasks.ostw";
+
+enum GameState {
+    FirstTimeSetup,
+    Lobby,
+    Initialization,
+    SpawnBots,
+    Play
+}
+
+globalvar GameState gameState;
+
+rule: "Setup"
+{
+    DisableAnnouncer();
+    DisableCompletion();
+    DisableMusic();
+    DisableScoring();
+
+    SetMatchTime(0);
+    PauseMatchTime();
+    SetMoveSpeed(AllPlayers(), 0);
+    spawnBots(9);
+    Wait(5);
+    gameState = GameState.Lobby;
+}
+
+rule: "Create Lobby"
+if (gameState == GameState.Lobby)
+{
+    putPlayersInCircle();
+    markCenter();
+    drawTasks();
+    gameState = GameState.Initialization;
+}
+
+rule: "Initialize Game"
+if (gameState == GameState.Initialization)
+{
+    assignRoles(2);
+
+    CreateHudText(
+        VisibleTo  : FilteredArray(AllPlayers(), ArrayElement().role == PlayerRole.CREW),
+        Header     : "CREWMATE",
+        HeaderColor: Color.SkyBlue,
+        Location   : Location.Right,
+        SortOrder  : 0,
+        Spectators : Spectators.VisibleNever,
+        Reevaluation: HudTextRev.None
+    );
+    CreateHudText(
+        VisibleTo  : FilteredArray(AllPlayers(), ArrayElement().role == PlayerRole.IMPOSTER),
+        Header     : "IMPOSTER",
+        HeaderColor: Color.Red,
+        Location   : Location.Right,
+        SortOrder  : 0,
+        Spectators : Spectators.VisibleNever,
+        Reevaluation: HudTextRev.None
+    );
+
+    foreach (define player in AllPlayers()) {
+        CreateInWorldText(
+            AllPlayers(),
+            player.role == PlayerRole.CREW ? "CREW" : "IMPOSTER", PositionOf(player), 4, Clipping.ClipAgainstSurfaces,
+            InworldTextRev.None,
+            Color.White
+        );
+    }
+}

@@ -1,0 +1,35 @@
+import "customGameSettings.json";
+
+rule: "Setup"
+{
+    DisableAnnouncer()
+    DisableCompletion()
+    DisableMusic()
+    DisableScoring()
+
+}
+
+rule: "Player Setup"
+Event.OngoingPlayer
+{
+    DisableHeroHud(EventPlayer())
+    DisableGameModeHud(EventPlayer())
+    DisableKillFeed(EventPlayer())
+    DisableMessages(EventPlayer())
+    DisableSpectate(EventPlayer())
+    DisableSpectateHUD(EventPlayer())
+    DisableNameplates(EventPlayer())
+    DisableRespawning(EventPlayer())
+    DisableScoreboard(EventPlayer())
+    SetUltimateAbilityEnabled(EventPlayer(), false)
+    SetMeleeEnabled(EventPlayer(), false)
+    SetCrouchEnabled(EventPlayer(), false)
+    SetReloadEnabled(EventPlayer(), false)
+    SetAbility1Enabled(EventPlayer(), false)
+    SetAbility2Enabled(EventPlayer(), false)
+    SetPrimaryFireEnabled(EventPlayer(), false)
+    SetSecondaryFireEnabled(EventPlayer(), false)
+    SetJumpEnabled(EventPlayer(), false)
+
+    CreateHudText(EventPlayer(), Subheader: <"(X: <0>, Y: <1>, Z: <2>)", XOf(PositionOf(EventPlayer())), YOf(PositionOf(EventPlayer())), ZOf(PositionOf(EventPlayer()))>)
+}

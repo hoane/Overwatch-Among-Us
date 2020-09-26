@@ -1,0 +1,25 @@
+
+globalvar Vector circleCenter = Vector(-208.7, 0.0, -16.4);
+
+void markCenter() {
+    CreateEffect(AllPlayers(), Effect.Sphere, Color.Aqua, circleCenter, 1, EffectRev.None);
+}
+
+Vector circlePosition(Vector center, ref define slot, ref define totalSlots, define radius) {
+    define radians = (2 * Pi() * slot) / totalSlots;
+    return Vector(XOf(center) + (radius * CosineFromRadians(radians)), YOf(center), ZOf(center) + (radius * SineFromRadians(radians)));
+}
+
+void putPlayersInCircle() {
+    for(define i = 0; i < 10; i++) {
+        define pos = circlePosition(circleCenter, i, 10, 8.0)
+        Teleport(AllPlayers()[i], pos);
+        SetFacing(AllPlayers()[i], circleCenter - pos);
+    }
+}
+
+void spawnBots(ref define botsToCreate) {
+    for (define i = 0; i < botsToCreate; i++) {
+        CreateDummyBot(AllHeroes(), Team.All, -1, Vector(-190, 1, -30));
+    }
+}

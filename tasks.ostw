@@ -1,0 +1,36 @@
+class Task {
+    public define Name;
+    public Vector Position;
+    public define Duration;
+
+    public Task(ref define name, ref Vector position, ref define duration) {
+        this.Name = name;
+        this.Position = position;
+        this.Duration = duration;
+    }
+
+    void draw() {
+        CreateEffect(
+            FilteredArray(AllPlayers(), DistanceBetween(PositionOf(ArrayElement()), Position) < 30),
+            Effect.Sphere, Color.LimeGreen, Position, 1.0,
+            EffectRev.VisibleTo
+        );
+        CreateInWorldText(
+            FilteredArray(AllPlayers(), DistanceBetween(PositionOf(ArrayElement()), Position) < 5),
+            Name, Position, 4, Clipping.ClipAgainstSurfaces,
+            InworldTextRev.VisibleTo,
+            Color.White
+        );
+    }
+}
+
+globalvar Task[] tasks = [
+    new Task("Collect Butterflies", Vector(-189.9, 3.7, -41.6), 1.0),
+    new Task("Serve The Wine", Vector(-186.7, 2.0, -19.8), 1.0)
+];
+
+void drawTasks() {
+    // Can't use a loop here because the index will get bound to the FilteredArray
+    tasks[0].draw();
+    tasks[1].draw();
+}

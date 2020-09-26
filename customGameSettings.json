@@ -1,0 +1,55 @@
+{
+    "Heroes": {
+        "General": {
+            "Enabled Heroes": [
+                "Ashe",
+                "Ana",
+                "Baptiste",
+                "Bastion",
+                "Brigitte",
+                "D.va",
+                "Doomfist",
+                "Echo",
+                "Hanzo",
+                "Genji",
+                "Junkrat",
+                "Mccree",
+                "Mei",
+                "Moira",
+                "Orisa",
+                "Pharah",
+                "Reaper",
+                "Reinhardt",
+                "Roadhog",
+                "Sigma",
+                "Soldier: 76",
+                "Symmetra",
+                "Sombra",
+                "Torbjörn",
+                "Tracer",
+                "Widowmaker",
+                "Winston"
+            ],
+            "General": {
+                "Ultimate Generation - Passive": 0,
+                "Ultimate Generation - Combat": 0
+            }
+        }
+    },
+    "Modes": {
+        "All": {
+            "Game Mode Start": "Immediately",
+            "Hero Limit": "Off",
+            "Respawn As Random Hero": true,
+            "Respawn Time Scalar": 0
+        },
+        "Deathmatch": {
+            "Enabled": true,
+            "Enabled Maps": ["Ilios Well"]
+        }
+    },
+    "Lobby": {
+        "Max FFA Players": 10
+    },
+    "Description": ""
+}

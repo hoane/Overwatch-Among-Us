@@ -1,0 +1,40 @@
+enum PlayerRole {
+    CREW,
+    IMPOSTER
+}
+
+playervar PlayerRole role;
+
+rule: "Player Setup"
+Event.OnPlayerJoin
+{
+    DisableGameModeHud(EventPlayer());
+    DisableKillFeed(EventPlayer());
+    DisableMessages(EventPlayer());
+    DisableSpectate(EventPlayer());
+    DisableHeroHud(EventPlayer())
+    DisableSpectateHUD(EventPlayer());
+    DisableNameplates(EventPlayer());
+    DisableRespawning(EventPlayer());
+    DisableScoreboard(EventPlayer());
+    SetUltimateAbilityEnabled(EventPlayer(), false);
+    SetMeleeEnabled(EventPlayer(), false);
+    SetCrouchEnabled(EventPlayer(), false);
+    SetReloadEnabled(EventPlayer(), false);
+    SetAbility1Enabled(EventPlayer(), false);
+    SetAbility2Enabled(EventPlayer(), false);
+    SetPrimaryFireEnabled(EventPlayer(), false);
+    SetSecondaryFireEnabled(EventPlayer(), false);
+    SetJumpEnabled(EventPlayer(), false);
+
+    CreateHudText(EventPlayer(), Subheader: <"(X: <0>, Y: <1>, Z: <2>)", XOf(PositionOf(EventPlayer())), YOf(PositionOf(EventPlayer())), ZOf(PositionOf(EventPlayer()))>);
+}
+
+
+void assignRoles(ref define imposters) {
+    AllPlayers().role = PlayerRole.CREW;
+
+    for (define i = 0; i < imposters; i++) {
+        RandomValueInArray(AllPlayers()).role = PlayerRole.IMPOSTER
+    }
+}
