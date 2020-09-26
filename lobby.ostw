@@ -1,0 +1,190 @@
+import "main.ostw";
+
+globalvar define hostMenuOpen = false;
+globalvar define hostMenuSelected = 0;
+globalvar define renderedHostMenu = "";
+
+globalvar NumberOption NumImposters = new NumberOption("Imposter Count", 1, 3, 1, 1, "");
+globalvar NumberOption NumTasks = new NumberOption("Task Count", 2, 6, 3, 1, "");
+globalvar NumberOption NumBots = new NumberOption("Bot Count", 0, 9, 8, 1, "");
+
+globalvar HostMenuOption[] options = [
+    NumImposters,
+    NumTasks,
+    NumBots,
+    new ActionButton("Start Game", 0)
+];
+
+void RenderOptions() "Host Menu: Render Options"
+if (gameState == GameState.Lobby)
+{
+    renderedHostMenu = "";
+    for (define i = 0; i < options.Length; i++) {
+        renderedHostMenu = <"<0><1><2>", renderedHostMenu, options[i].RenderedLine(i == hostMenuSelected), i < options.Length - 1 ? "\n" : "">;
+    }
+}
+
+rule: "Global: Start Lobby"
+if (gameState == GameState.Lobby)
+{
+    SetMoveSpeed(AllPlayers(), 0);
+    RenderOptions();
+
+    CreateHudText(
+        HostPlayer(),
+        Subheader: "You are the host player. Please configure and start the game.",
+        SubheaderColor: Color.White,
+        Location: Location.Top,
+        SortOrder: 1,
+        Spectators: Spectators.VisibleNever
+    );
+
+    CreateHudText(
+        FilteredArray(AllPlayers(), ArrayElement() != HostPlayer()),
+        Subheader: "You are not the host player. Please wait for the host to start the game.",
+        SubheaderColor: Color.White,
+        Location: Location.Top,
+        SortOrder: 1,
+        Spectators: Spectators.VisibleNever
+    );
+
+    CreateHudText(
+        AllPlayers(),
+        Header: renderedHostMenu,
+        HeaderColor: Color.White,
+        Location: Location.Top,
+        SortOrder: 2,
+        Spectators: Spectators.VisibleNever
+    );
+
+    CreateHudText(
+        AllPlayers(),
+        Text: options[hostMenuSelected].Controls,
+        TextColor: Color.White,
+        Location: Location.Top,
+        SortOrder: 3,
+        Spectators: Spectators.VisibleNever
+    );
+
+    hostMenuOpen = true;
+}
+
+rule: "Host Menu: Previous Option"
+if (gameState == GameState.Lobby)
+if (hostMenuOpen)
+if (ThrottleOf(HostPlayer()).Z > 0)
+{
+    hostMenuSelected--;
+    if (hostMenuSelected < 0) hostMenuSelected = options.Length - 1;
+    RenderOptions();
+}
+
+rule: "Host Menu: Next Option"
+if (gameState == GameState.Lobby)
+if (hostMenuOpen)
+if (ThrottleOf(HostPlayer()).Z < 0)
+{
+    hostMenuSelected++;
+    if (hostMenuSelected >= options.Length) hostMenuSelected = 0;
+    RenderOptions();
+}
+
+rule: "Host Menu: Left"
+if (gameState == GameState.Lobby)
+if (hostMenuOpen)
+if (ThrottleOf(HostPlayer()).X > 0)
+{
+    options[hostMenuSelected].OnLeft();
+}
+
+rule: "Host Menu: Right"
+if (gameState == GameState.Lobby)
+if (hostMenuOpen)
+if (ThrottleOf(HostPlayer()).X < 0)
+{
+    options[hostMenuSelected].OnRight();
+}
+
+rule: "Host Menu: Press"
+if (gameState == GameState.Lobby)
+if (hostMenuOpen)
+if (IsButtonHeld(HostPlayer(), Button.Interact))
+{
+    options[hostMenuSelected].OnSelect();
+}
+
+class HostMenuOption {
+    public define Name;
+    public define Value;
+    protected virtual define ValueString: Value;
+    public virtual define RenderedLine(define selected): <"<3><0>: <1><2>", Name, ValueString, ValueTag, selected ? "▶" : "▷">;
+    public define ValueTag = "";
+    public virtual define Controls: "";
+    public virtual void OnLeft() {}
+    public virtual void OnRight() {}
+    public virtual void OnSelect() {}
+}
+
+class ActionButton : HostMenuOption {
+    private define Action;
+    public override define Controls: <"Press <0> to activate the currently selected option.", InputBindingString(ButtonValue(Button.Interact))>;
+
+    public ActionButton(ref define name, ref define action)
+    {
+        Name = name;
+        Action = action;
+    }
+
+    public override define RenderedLine(define selected): <"<1><0>", Name, selected ? "▶" : "▷">;
+
+    public override void OnSelect()
+    {
+        if (Action == 0) {
+            root.hostMenuOpen = false;
+            root.spawnBots(root.NumBots.Value);
+            DestroyAllHudText();
+            Wait(5);
+            root.assignRoles(root.NumImposters.Value);
+            root.gameState = GameState.Play;
+        }
+    }
+}
+
+class NumberOption : HostMenuOption {
+    public override define Controls: "Walk left or right to change the currently selected option.";
+    private define Min;
+    private define Max;
+    private define DefaultValue;
+    private define Step;
+
+    public NumberOption(ref define name, ref define min, ref define max, ref define defaultValue, ref define step, ref define valueTag = "") {
+        Name = name;
+        Min = min;
+        Max = max;
+        Value = defaultValue;
+        DefaultValue = defaultValue;
+        Step = step;
+        ValueTag = valueTag;
+    }
+
+    public override void OnSelect() {
+        Value = DefaultValue;
+        root.RenderOptions();
+    }
+
+    public override void OnLeft() {
+        Value = Max(Value - Step, Min);
+        root.RenderOptions();
+
+        Wait(0.25, WaitBehavior.AbortWhenFalse);
+        Loop();
+    }
+
+    public override void OnRight() {
+        Value = Min(Value + Step, Max);
+        root.RenderOptions();
+
+        Wait(0.25, WaitBehavior.AbortWhenFalse);
+        Loop();
+    }
+}

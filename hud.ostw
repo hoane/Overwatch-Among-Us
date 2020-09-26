@@ -1,5 +1,7 @@
 import "main.ostw";
 
+globalvar define[] playHuds = [];
+
 void drawGlobalHUD() {
     CreateHudText(
         VisibleTo   : AllPlayers(),
@@ -9,17 +11,19 @@ void drawGlobalHUD() {
         Spectators  : Spectators.VisibleNever,
         Reevaluation: HudTextRev.String,
         SortOrder   : 0
-    )
+    );
+    ModifyVariable(playHuds, Operation.AppendToArray, LastTextID());
 
     CreateHudText(
         VisibleTo   : AllPlayers(),
-        Text        : " \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n",
+        Text        : " \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n",
         TextColor   : Color.White,
         Location    : Location.Left,
         Spectators  : Spectators.VisibleNever,
         Reevaluation: HudTextRev.None,
         SortOrder   : 1
     );
+    ModifyVariable(playHuds, Operation.AppendToArray, LastTextID());
 
     CreateHudText(
         VisibleTo  : FilteredArray(AllPlayers(), ArrayElement().role == PlayerRole.CREW),
@@ -30,6 +34,7 @@ void drawGlobalHUD() {
         Spectators : Spectators.VisibleNever,
         Reevaluation: HudTextRev.None
     );
+    ModifyVariable(playHuds, Operation.AppendToArray, LastTextID());
 
     CreateHudText(
         VisibleTo  : FilteredArray(AllPlayers(), ArrayElement().role == PlayerRole.IMPOSTER),
@@ -40,6 +45,18 @@ void drawGlobalHUD() {
         Spectators : Spectators.VisibleNever,
         Reevaluation: HudTextRev.None
     );
+    ModifyVariable(playHuds, Operation.AppendToArray, LastTextID());
+
+    CreateHudText(
+        VisibleTo   : AllPlayers(),
+        Text        : " \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n",
+        TextColor   : Color.Green,
+        Location    : Location.Right,
+        Spectators  : Spectators.VisibleNever,
+        Reevaluation: HudTextRev.None,
+        SortOrder   : 2
+    );
+    ModifyVariable(playHuds, Operation.AppendToArray, LastTextID());
 }
 
 void drawPlayerHUD(ref define player) {
@@ -54,6 +71,7 @@ void drawPlayerHUD(ref define player) {
         Reevaluation: HudTextRev.String,
         SortOrder   : 2
     );
+    ModifyVariable(playHuds, Operation.AppendToArray, LastTextID());
 
     CreateHudText(
         VisibleTo   : player,
@@ -66,16 +84,7 @@ void drawPlayerHUD(ref define player) {
         Reevaluation: HudTextRev.String,
         SortOrder   : 3
     );
-
-    CreateHudText(
-        VisibleTo   : player,
-        Text        : " \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n",
-        TextColor   : Color.Green,
-        Location    : Location.Right,
-        Spectators  : Spectators.VisibleNever,
-        Reevaluation: HudTextRev.None,
-        SortOrder   : 2
-    );
+    ModifyVariable(playHuds, Operation.AppendToArray, LastTextID());
 
     CreateHudText(
         VisibleTo   : player,
@@ -88,6 +97,8 @@ void drawPlayerHUD(ref define player) {
         Reevaluation: HudTextRev.VisibleToAndString,
         SortOrder   : 3
     );
+    ModifyVariable(playHuds, Operation.AppendToArray, LastTextID());
+
     CreateHudText(
         VisibleTo   : player.role == PlayerRole.IMPOSTER ? player : EmptyArray(),
         Header      : InputBindingString(ButtonValue(Button.Ultimate)),
@@ -99,6 +110,7 @@ void drawPlayerHUD(ref define player) {
         Reevaluation: HudTextRev.VisibleTo,
         SortOrder   : 4
     );
+    ModifyVariable(playHuds, Operation.AppendToArray, LastTextID());
 
     CreateHudText(
         VisibleTo   : player.isTaskInProgress ? player : EmptyArray(),
@@ -109,13 +121,16 @@ void drawPlayerHUD(ref define player) {
         Reevaluation: HudTextRev.VisibleToAndString,
         SortOrder   : 2
     );
+    ModifyVariable(playHuds, Operation.AppendToArray, LastTextID());
+
     CreateHudText(
         VisibleTo   : player,
-        Text        : <"Debug: InC: <0> / C: <1>", player.incompleteTasks.Length, player.completeTasks.Length>,
+        Text        : <"Debug: InC: <0> / C: <1>\n S: <2>", player.incompleteTasks.Length, player.completeTasks.Length, gameState>,
         TextColor   : Color.White,
         Location    : Location.Top,
         Spectators  : Spectators.VisibleNever,
         Reevaluation: HudTextRev.VisibleToAndString,
         SortOrder   : 3
     );
+    ModifyVariable(playHuds, Operation.AppendToArray, LastTextID());
 }

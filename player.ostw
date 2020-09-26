@@ -7,15 +7,23 @@ enum PlayerRole {
 
 globalvar Vector circleCenter = Vector(-208.7, 0.0, -16.4);
 playervar PlayerRole role;
+
+// Player Variables
+playervar define hudInteractString = "";
 playervar Task[] incompleteTasks;
 playervar Task[] completeTasks = EmptyArray();
+
+// Crew variables
 playervar define numTasks = 0;
 playervar define hudTaskString = "";
 playervar define hudCompleteTaskString = "";
-playervar define hudInteractString = "";
 playervar Task interactableTask;
 playervar define isTaskInProgress = false;
 playervar define taskProgressTime;
+
+// Imposter variables
+playervar define interactableCrew;
+
 
 
 
@@ -39,7 +47,8 @@ Event.OnPlayerJoin
     SetAbility2Enabled(EventPlayer(), false);
     SetPrimaryFireEnabled(EventPlayer(), false);
     SetSecondaryFireEnabled(EventPlayer(), false);
-    SetJumpEnabled(EventPlayer(), false);
+    //SetJumpEnabled(EventPlayer(), false);
+    //SetMoveSpeed(EventPlayer(), 300);
 
     CreateHudText(EventPlayer(), Subheader: <"(X: <0>, Y: <1>, Z: <2>)", XOf(PositionOf(EventPlayer())), YOf(PositionOf(EventPlayer())), ZOf(PositionOf(EventPlayer()))>);
 }
@@ -68,7 +77,9 @@ void assignRoles(ref define imposters) {
 void assignTasks(ref define player, ref define numTasks) {
     player.numTasks = numTasks;
     player.incompleteTasks = ChooseArray(global_tasks, numTasks);
-    totalTaskCount += 2;
+    if (player.role == PlayerRole.CREW) {
+        totalTaskCount += numTasks;
+    }
 }
 
 void updateHudStrings(ref define player) {
@@ -90,15 +101,24 @@ void updateHudStrings(ref define player) {
     >;
 }
 
-void playerUpdate(ref define player) {
+void crewUpdate(ref define player) {
     if (player.isTaskInProgress) {
-        updatePlayerTaskProgress(player);
+        updateCrewTaskProgress(player);
     } else {
-        findPlayerNearestTask(player);
+        findCrewNearestTask(player);
+    }
+
+    debugUpdate(player);
+}
+
+void debugUpdate(ref define player) {
+    if (IsButtonHeld(player, Button.Ultimate)) {
+        totalCompleteTaskCount++;
+        checkEndGame();
     }
 }
 
-void updatePlayerTaskProgress(ref define player) {
+void updateCrewTaskProgress(ref define player) {
     // Still near enough to task to work on it, and holding the button?
     if (!IsButtonHeld(player, Button.Interact) || DistanceBetween(PositionOf(player), player.interactableTask.Position) > 3) {
         player.isTaskInProgress = false;
@@ -112,11 +132,12 @@ void updatePlayerTaskProgress(ref define player) {
         player.isTaskInProgress = false;
         totalCompleteTaskCount++;
         updateHudStrings(player);
+        checkEndGame();
     }
 }
 
 
-void findPlayerNearestTask(ref define player) {
+void findCrewNearestTask(ref define player) {
     player.hudInteractString = "";
     // Find first incomplete task within 3 meters
     for (define i=0; i < player.incompleteTasks.Length; i++) {
@@ -136,9 +157,45 @@ void findPlayerNearestTask(ref define player) {
 rule: "Player Update Loop"
 Event.OngoingPlayer
 if (gameState == GameState.Play)
+if (playing)
+if (EventPlayer().role == PlayerRole.CREW)
 {
     while (gameState == GameState.Play) {
-        playerUpdate(EventPlayer());
+        crewUpdate(EventPlayer());
+        Wait(0.25);
+    }
+}
+
+void imposterUpdate(ref define player) {
+    findImposterNearestCrew(player);
+}
+
+void findImposterNearestCrew(ref define player) {
+    player.hudInteractString = "";
+    // Find first incomplete task within 3 meters
+    for (define i=0; i < player.incompleteTasks.Length; i++) {
+        if (DistanceBetween(PositionOf(player), player.incompleteTasks[i].Position) <= 3) {
+            player.hudInteractString = player.incompleteTasks[i].Name;
+            player.interactableTask = player.incompleteTasks[i];
+
+            if (IsButtonHeld(player, Button.Interact)) {
+                player.isTaskInProgress = true;
+                player.taskProgressTime = 0;
+                return;
+            }
+        }
+    }
+}
+
+
+rule: "Imposter Update Loop"
+Event.OngoingPlayer
+if (gameState == GameState.Play)
+if (playing)
+if (EventPlayer().role == PlayerRole.IMPOSTER)
+{
+    while (gameState == GameState.Play) {
+        imposterUpdate(EventPlayer());
         Wait(0.25);
     }
 }

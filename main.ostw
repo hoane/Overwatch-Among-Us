@@ -4,20 +4,30 @@ import "spawnBots.ostw";
 import "tasks.ostw";
 import "util.ostw";
 import "hud.ostw";
+import "lobby.ostw";
 
 enum GameState {
     Waiting,
-    Play
+    Lobby,
+    Play,
+    End
+}
+
+enum PlayState {
+    Free,
+    Meeting
 }
 
 globalvar GameState gameState = GameState.Waiting;
-globalvar define started = false;
-globalvar define totalTaskCount = 0;
-globalvar define totalCompleteTaskCount = 0;
+globalvar define started;
+globalvar define playing;
+globalvar define totalTaskCount;
+globalvar define totalCompleteTaskCount;
 
 
 rule: "Global: Setup"
 {
+    reset();
     DisableAnnouncer();
     DisableCompletion();
     DisableMusic();
@@ -25,15 +35,14 @@ rule: "Global: Setup"
 
     SetMatchTime(0);
     PauseMatchTime();
-    spawnBots(9);
 }
 
 rule: "Global: Start Play"
 if (gameState == GameState.Play)
 {
+    playing = true;
     markCenter();
     drawTasks();
-    assignRoles(2);
     drawGlobalHUD();
 }
 
@@ -50,17 +59,66 @@ if (gameState == GameState.Play)
         Color.White
     );
 
-    assignTasks(EventPlayer(), 2);
+    assignTasks(EventPlayer(), NumTasks.Value);
     drawPlayerHUD(EventPlayer());
     updateHudStrings(EventPlayer());
-}
 
+    SetMoveSpeed(AllPlayers(), 300);
+}
 
 rule: "Start"
 if (!started)
 if (IsTrueForAll(AllPlayers(), HasSpawned(ArrayElement()) || IsDead(ArrayElement())))
 {
     started = true;
+    Wait(1);
+    gameState = GameState.Lobby;
+}
+
+void reset() "Reset Game" {
+    gameState = GameState.Waiting;
+    totalTaskCount = 0;
+    totalCompleteTaskCount = 0;
+    started = false;
+    playing = false;
+}
+
+void endGame() "Play: End Game" {
+    playing = false;
+    SetMoveSpeed(AllPlayers(), 0);
     Wait(5);
-    gameState = GameState.Play;
+
+    DestroyAllHudText();
+    DestroyAllIcons();
+    DestroyAllInworldText();
+    DestroyAllDummyBots();
+    DestroyAllEffects();
+    reset();
+}
+
+void checkEndGame() "Play: Check End Game" {
+    if (totalCompleteTaskCount >= totalTaskCount) {
+        CreateHudText(
+            VisibleTo   : AllPlayers(),
+            Header      : "CREWMATES WIN!",
+            HeaderColor : Color.Blue,
+            Location    : Location.Top,
+            Spectators  : Spectators.VisibleAlways,
+            Reevaluation: HudTextRev.None,
+            SortOrder   : 10
+        );
+        endGame();
+    }
+    if (CountOf(FilteredArray(AllLivingPlayers(), ArrayElement().role == PlayerRole.IMPOSTER))*2 >= CountOf(AllLivingPlayers())) {
+        CreateHudText(
+            VisibleTo   : AllPlayers(),
+            Header      : "IMPOSTERS WIN!",
+            HeaderColor : Color.Red,
+            Location    : Location.Top,
+            Spectators  : Spectators.VisibleAlways,
+            Reevaluation: HudTextRev.None,
+            SortOrder   : 10
+        );
+        endGame();
+    }
 }
