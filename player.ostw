@@ -22,10 +22,10 @@ playervar define isTaskInProgress = false;
 playervar define taskProgressTime;
 
 // Imposter variables
-playervar define interactableCrew;
-
-
-
+playervar define closestCrew;
+playervar define canKill = false;
+playervar define killCooldown = 0;
+playervar define killCount = 0;
 
 rule: "Player Setup"
 Event.OnPlayerJoin
@@ -47,10 +47,12 @@ Event.OnPlayerJoin
     SetAbility2Enabled(EventPlayer(), false);
     SetPrimaryFireEnabled(EventPlayer(), false);
     SetSecondaryFireEnabled(EventPlayer(), false);
+    //SetDamageReceived(EventPlayer(), 0);
     //SetJumpEnabled(EventPlayer(), false);
     //SetMoveSpeed(EventPlayer(), 300);
 
     CreateHudText(EventPlayer(), Subheader: <"(X: <0>, Y: <1>, Z: <2>)", XOf(PositionOf(EventPlayer())), YOf(PositionOf(EventPlayer())), ZOf(PositionOf(EventPlayer()))>);
+    ChaseVariableAtRate(EventPlayer().killCooldown, 0, 1.0, RateChaseReevaluation.None);
 }
 
 void markCenter() {
@@ -122,14 +124,15 @@ void updateCrewTaskProgress(ref define player) {
     // Still near enough to task to work on it, and holding the button?
     if (!IsButtonHeld(player, Button.Interact) || DistanceBetween(PositionOf(player), player.interactableTask.Position) > 3) {
         player.isTaskInProgress = false;
+        StopChasingVariable(player.taskProgressTime);
         return;
     }
-    player.taskProgressTime++;
     // If task done, move it to the complete list
     if (player.taskProgressTime >= player.interactableTask.Duration) {
+        player.isTaskInProgress = false;
+        StopChasingVariable(player.taskProgressTime);
         ModifyVariable(player.completeTasks, Operation.AppendToArray, player.interactableTask);
         ModifyVariable(player.incompleteTasks, Operation.RemoveFromArrayByValue, player.interactableTask);
-        player.isTaskInProgress = false;
         totalCompleteTaskCount++;
         updateHudStrings(player);
         checkEndGame();
@@ -148,6 +151,7 @@ void findCrewNearestTask(ref define player) {
             if (IsButtonHeld(player, Button.Interact)) {
                 player.isTaskInProgress = true;
                 player.taskProgressTime = 0;
+                ChaseVariableAtRate(player.taskProgressTime, player.interactableTask.Duration, 1.0, RateChaseReevaluation.None);
                 return;
             }
         }
@@ -162,7 +166,7 @@ if (EventPlayer().role == PlayerRole.CREW)
 {
     while (gameState == GameState.Play) {
         crewUpdate(EventPlayer());
-        Wait(0.25);
+        Wait(TICK);
     }
 }
 
@@ -171,24 +175,51 @@ void imposterUpdate(ref define player) {
 }
 
 void findImposterNearestCrew(ref define player) {
-    player.hudInteractString = "";
+    define closestCrewDistance = 10.0;
+    define _closestCrew;
     // Find first incomplete task within 3 meters
-    for (define i=0; i < player.incompleteTasks.Length; i++) {
-        if (DistanceBetween(PositionOf(player), player.incompleteTasks[i].Position) <= 3) {
-            player.hudInteractString = player.incompleteTasks[i].Name;
-            player.interactableTask = player.incompleteTasks[i];
-
-            if (IsButtonHeld(player, Button.Interact)) {
-                player.isTaskInProgress = true;
-                player.taskProgressTime = 0;
-                return;
-            }
+    foreach (define crew in FilteredArray(AllLivingPlayers(), ArrayElement().role == PlayerRole.CREW)) {
+        define distance = DistanceBetween(PositionOf(player), PositionOf(crew));
+        if (distance <= closestCrewDistance) {
+            _closestCrew = crew;
+            closestCrewDistance = distance;
         }
+    }
+
+    if (closestCrewDistance <= 5.0) {
+        player.closestCrew = _closestCrew;
+        player.canKill = true;
+        player.hudInteractString = <"Kill <0>", HeroIconString(HeroOf(closestCrew))>;
+    } else {
+        player.canKill = false;
+        player.hudInteractString = "";
     }
 }
 
+rule: "Player: Imposter Interact (Kill)"
+Event.OngoingPlayer
+if (gameState == GameState.Play)
+if (playing)
+if (EventPlayer().role == PlayerRole.IMPOSTER)
+if (IsButtonHeld(EventPlayer(), Button.Interact))
+if (EventPlayer().canKill)
+if (EventPlayer().killCooldown == 0)
+{
+    EventPlayer().killCount += 1;
+    EventPlayer().canKill = false;
+    CreateEffect(
+        VisibleTo : AllPlayers(),
+        Type      : Effect.Ring,
+        Color     : Color.Purple,
+        Position  : PositionOf(EventPlayer().closestCrew),
+        Radius    : 1,
+        Reevaluation: EffectRev.None
+    );
+    Kill(EventPlayer().closestCrew);
+    EventPlayer().killCooldown = KillCooldown.Value;
+}
 
-rule: "Imposter Update Loop"
+rule: "Player: Imposter Update Loop"
 Event.OngoingPlayer
 if (gameState == GameState.Play)
 if (playing)
@@ -196,6 +227,6 @@ if (EventPlayer().role == PlayerRole.IMPOSTER)
 {
     while (gameState == GameState.Play) {
         imposterUpdate(EventPlayer());
-        Wait(0.25);
+        Wait(TICK);
     }
 }

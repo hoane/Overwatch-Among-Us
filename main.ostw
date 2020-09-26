@@ -9,8 +9,7 @@ import "lobby.ostw";
 enum GameState {
     Waiting,
     Lobby,
-    Play,
-    End
+    Play
 }
 
 enum PlayState {
@@ -18,6 +17,7 @@ enum PlayState {
     Meeting
 }
 
+globalvar define TICK = 0.25;
 globalvar GameState gameState = GameState.Waiting;
 globalvar define started;
 globalvar define playing;
@@ -71,12 +71,16 @@ if (!started)
 if (IsTrueForAll(AllPlayers(), HasSpawned(ArrayElement()) || IsDead(ArrayElement())))
 {
     started = true;
-    Wait(1);
+    Wait(2);
     gameState = GameState.Lobby;
 }
 
 void reset() "Reset Game" {
     gameState = GameState.Waiting;
+    AllPlayers().incompleteTasks = EmptyArray();
+    AllPlayers().completeTasks = EmptyArray();
+    AllPlayers().canKill = false;
+    AllPlayers().isTaskInProgress = false;
     totalTaskCount = 0;
     totalCompleteTaskCount = 0;
     started = false;

@@ -24,7 +24,7 @@ class Task {
             Color.White
         );
         CreateInWorldText(
-            FilteredArray(AllLivingPlayers(), DistanceBetween(PositionOf(ArrayElement()), Position) > 3 && ArrayElement().incompleteTasks.Contains(this)),
+            FilteredArray(AllLivingPlayers(), ArrayElement().role == PlayerRole.CREW && DistanceBetween(PositionOf(ArrayElement()), Position) > 3 && ArrayElement().incompleteTasks.Contains(this)),
             "▼", Position, 4, Clipping.DoNotClip,
             InworldTextRev.VisibleTo,
             Color.Green
@@ -33,12 +33,12 @@ class Task {
 }
 
 globalvar Task[] global_tasks = [
-    new Task("Collect Butterflies", Vector(-189.9, 4.0, -41.6), 10.0),
-    new Task("Take Out Trash", Vector(-161.5, 1.2, -48.2), 10.0),
-    new Task("Fold Towels", Vector(-279.18, 0.5, 10.5), 10.0),
-    new Task("Admire The View", Vector(-230.5, 0.2, -32.8), 10.0),
-    new Task("Perform A Dance Routine", Vector(-179.4, -3.5, -66.0), 10.0),
-    new Task("Serve Wine", Vector(-186.7, 2.0, -19.8), 10.0)
+    new Task("Collect Butterflies", Vector(-189.9, 4.0, -41.6), 3.0),
+    new Task("Take Out Trash", Vector(-161.5, 1.2, -48.2), 3.0),
+    new Task("Fold Towels", Vector(-279.18, 0.5, 10.5), 3.0),
+    new Task("Admire The View", Vector(-230.5, 0.2, -32.8), 3.0),
+    new Task("Perform A Dance Routine", Vector(-179.4, -3.5, -66.0), 3.0),
+    new Task("Serve Wine", Vector(-186.7, 2.0, -19.8), 3.0)
 ];
 
 void drawTasks() {
