@@ -2,18 +2,18 @@ import "customGameSettings.json";
 import "player.ostw";
 import "spawnBots.ostw";
 import "tasks.ostw";
+import "util.ostw";
 
 enum GameState {
-    FirstTimeSetup,
-    Lobby,
-    Initialization,
-    SpawnBots,
+    Waiting,
     Play
 }
 
-globalvar GameState gameState;
+globalvar GameState gameState = GameState.Waiting;
+globalvar define started = false;
 
-rule: "Setup"
+
+rule: "Global: Setup"
 {
     DisableAnnouncer();
     DisableCompletion();
@@ -22,24 +22,14 @@ rule: "Setup"
 
     SetMatchTime(0);
     PauseMatchTime();
-    SetMoveSpeed(AllPlayers(), 0);
     spawnBots(9);
-    Wait(5);
-    gameState = GameState.Lobby;
 }
 
-rule: "Create Lobby"
-if (gameState == GameState.Lobby)
+rule: "Global: Start Play"
+if (gameState == GameState.Play)
 {
-    putPlayersInCircle();
     markCenter();
     drawTasks();
-    gameState = GameState.Initialization;
-}
-
-rule: "Initialize Game"
-if (gameState == GameState.Initialization)
-{
     assignRoles(2);
 
     CreateHudText(
@@ -60,13 +50,31 @@ if (gameState == GameState.Initialization)
         Spectators : Spectators.VisibleNever,
         Reevaluation: HudTextRev.None
     );
+}
 
-    foreach (define player in AllPlayers()) {
-        CreateInWorldText(
-            AllPlayers(),
-            player.role == PlayerRole.CREW ? "CREW" : "IMPOSTER", PositionOf(player), 4, Clipping.ClipAgainstSurfaces,
-            InworldTextRev.None,
-            Color.White
-        );
-    }
+rule: "Player: Start Play"
+Event.OngoingPlayer
+if (gameState == GameState.Play)
+{
+    putPlayerInCircle(EventPlayer());
+
+    CreateInWorldText(
+        AllPlayers(),
+        EventPlayer().role == PlayerRole.CREW ? "CREW" : "IMPOSTER", PositionOf(EventPlayer()), 4, Clipping.ClipAgainstSurfaces,
+        InworldTextRev.VisibleToPositionAndString,
+        Color.White
+    );
+
+    assignTasks(EventPlayer(), 2);
+    drawTasksHUD(EventPlayer(), 2);
+}
+
+
+rule: "Start"
+if (!started)
+if (IsTrueForAll(AllPlayers(), HasSpawned(ArrayElement()) || IsDead(ArrayElement())))
+{
+    started = true;
+    Wait(10);
+    gameState = GameState.Play;
 }

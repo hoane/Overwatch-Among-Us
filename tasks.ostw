@@ -1,3 +1,5 @@
+import "main.ostw";
+
 class Task {
     public define Name;
     public Vector Position;
@@ -24,13 +26,23 @@ class Task {
     }
 }
 
-globalvar Task[] tasks = [
+class PlayerTask {
+    public Task Task;
+    public define IsComplete;
+
+    public PlayerTask(ref define task) {
+        this.Task = task;
+        this.IsComplete = false;
+    }
+}
+
+globalvar Task[] global_tasks = [
     new Task("Collect Butterflies", Vector(-189.9, 3.7, -41.6), 1.0),
     new Task("Serve The Wine", Vector(-186.7, 2.0, -19.8), 1.0)
 ];
 
 void drawTasks() {
     // Can't use a loop here because the index will get bound to the FilteredArray
-    tasks[0].draw();
-    tasks[1].draw();
+    global_tasks[0].draw();
+    global_tasks[1].draw();
 }

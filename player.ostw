@@ -1,9 +1,13 @@
+import "main.ostw";
+
 enum PlayerRole {
     CREW,
     IMPOSTER
 }
 
+globalvar Vector circleCenter = Vector(-208.7, 0.0, -16.4);
 playervar PlayerRole role;
+playervar PlayerTask[] tasks;
 
 rule: "Player Setup"
 Event.OnPlayerJoin
@@ -30,11 +34,65 @@ Event.OnPlayerJoin
     CreateHudText(EventPlayer(), Subheader: <"(X: <0>, Y: <1>, Z: <2>)", XOf(PositionOf(EventPlayer())), YOf(PositionOf(EventPlayer())), ZOf(PositionOf(EventPlayer()))>);
 }
 
+void markCenter() {
+    CreateEffect(AllPlayers(), Effect.Sphere, Color.Aqua, circleCenter, 1, EffectRev.None);
+}
+
+Vector circlePosition(Vector center, ref define slot, ref define totalSlots, define radius) {
+    define radians = (2 * Pi() * slot) / totalSlots;
+    return Vector(XOf(center) + (radius * CosineFromRadians(radians)), YOf(center), ZOf(center) + (radius * SineFromRadians(radians)));
+}
+
+void putPlayerInCircle(ref define player) {
+    define pos = circlePosition(circleCenter, SlotOf(player), 10, 8.0)
+    Teleport(AllPlayers()[SlotOf(player)], pos);
+    SetFacing(AllPlayers()[SlotOf(player)], circleCenter - pos);
+}
+
 
 void assignRoles(ref define imposters) {
     AllPlayers().role = PlayerRole.CREW;
+    ChooseArray(AllPlayers(), imposters).role = PlayerRole.IMPOSTER;
+}
 
-    for (define i = 0; i < imposters; i++) {
-        RandomValueInArray(AllPlayers()).role = PlayerRole.IMPOSTER
+void assignTasks(ref define player, ref define numTasks) {
+    define tempTasks = ChooseArray(global_tasks, numTasks);
+    player.tasks = EmptyArray();
+    for (define i = 0; i < numTasks; i++) {
+        ModifyVariable(player.tasks, Operation.AppendToArray, new PlayerTask(tempTasks[i]))
     }
+}
+
+void drawTasksHUD(ref define player, ref define numTasks) {
+
+    define task0 = numTasks > 0 ? <"1. <0> <1>\n", player.tasks[0].IsComplete ? "♥" : "_", player.tasks[0].Task.Name> : ""
+    define task1 = numTasks > 1 ? <"2. <0> <1>\n", player.tasks[1].IsComplete ? "♥" : "_", player.tasks[1].Task.Name> : ""
+    define task2 = numTasks > 2 ? <"3. <0> <1>\n", player.tasks[2].IsComplete ? "♥" : "_", player.tasks[2].Task.Name> : ""
+    define task3 = numTasks > 3 ? <"4. <0> <1>\n", player.tasks[3].IsComplete ? "♥" : "_", player.tasks[3].Task.Name> : ""
+    define task4 = numTasks > 4 ? <"5. <0> <1>\n", player.tasks[4].IsComplete ? "♥" : "_", player.tasks[4].Task.Name> : ""
+    define task5 = numTasks > 5 ? <"6. <0> <1>\n", player.tasks[5].IsComplete ? "♥" : "_", player.tasks[5].Task.Name> : ""
+
+    define taskString = "<0><1><2><3><4><5>", task0, task1, task2, task3, task4, task5>
+
+    CreateHudText(
+        VisibleTo   : player,
+        Text        : "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n",
+        TextColor   : Color.White,
+        Location    : Location.Left,
+        Spectators  : Spectators.VisibleNever,
+        Reevaluation: HudTextRev.String,
+        SortOrder   : 1
+    );
+
+    CreateHudText(
+        VisibleTo   : player,
+        Text        : taskString,
+        TextColor   : Color.White,
+        Header      : "Tasks",
+        HeaderColor : Color.White,
+        Location    : Location.Left,
+        Spectators  : Spectators.VisibleNever,
+        Reevaluation: HudTextRev.String,
+        SortOrder   : 1
+    );
 }
