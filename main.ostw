@@ -12,12 +12,9 @@ import "crewmate.ostw";
 enum GameState {
     Waiting,
     Lobby,
-    Play
-}
-
-enum PlayState {
-    Free,
-    Meeting
+    Start,
+    Play,
+    Voting
 }
 
 globalvar define TICK = 0.25;
@@ -40,18 +37,19 @@ rule: "Global: Setup"
     PauseMatchTime();
 }
 
-rule: "Global: Start Play"
-if (gameState == GameState.Play)
+rule: "Global: State Start"
+if (gameState == GameState.Start)
 {
     playing = true;
     markCenter();
     drawTasks();
-    drawGlobalHUD();
+    Wait(1);
+    gameState = GameState.Play;
 }
 
-rule: "Player: Start Play"
+rule: "Player: State Start"
 Event.OngoingPlayer
-if (gameState == GameState.Play)
+if (gameState == GameState.Start)
 {
     putPlayerInCircle(EventPlayer());
 
@@ -63,6 +61,17 @@ if (gameState == GameState.Play)
     );
 
     assignTasks(EventPlayer(), NumTasks.Value);
+}
+
+rule: "Global: Start Play"
+if (gameState == GameState.Play)
+{
+    drawGlobalHUD();
+}
+
+rule: "Player: State Play"
+Event.OngoingPlayer
+if (gameState == GameState.Play) {
     drawPlayerHUD(EventPlayer());
     updateHudStrings(EventPlayer());
 

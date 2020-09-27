@@ -148,7 +148,7 @@ class ActionButton : HostMenuOption {
             DestroyAllHudText();
             Wait(5);
             root.assignRoles(root.NumImposters.Value);
-            root.gameState = GameState.Play;
+            root.gameState = GameState.Start;
         }
     }
 }
