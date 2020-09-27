@@ -1,0 +1,11 @@
+import "main.ostw";
+
+class Corpse {
+    public define Position;
+    public define Entity;
+
+    public Corpse(ref define position, ref define entity) {
+        this.Position = position;
+        this.Entity = entity;
+    }
+}

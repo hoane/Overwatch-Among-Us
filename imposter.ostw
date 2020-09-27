@@ -1,0 +1,92 @@
+import "main.ostw";
+
+// Imposter variables
+playervar define closestCrew;
+playervar define canKill = false;
+playervar define killCooldown = 0;
+playervar define killCount = 0;
+
+/* Per-tick state update for imposters.
+ */
+void imposterUpdate(ref define player) {
+    findImposterNearestCrew(player);
+}
+
+/* Find the nearest crew member, and determine if they are killable.
+ */
+void findImposterNearestCrew(ref define player) {
+    define closestCrewDistance = 10.0;
+    define _closestCrew;
+    // Find first incomplete task within 3 meters
+    foreach (define crew in FilteredArray(AllLivingPlayers(), ArrayElement().role == PlayerRole.CREW)) {
+        define distance = DistanceBetween(PositionOf(player), PositionOf(crew));
+        if (distance <= closestCrewDistance) {
+            _closestCrew = crew;
+            closestCrewDistance = distance;
+        }
+    }
+
+    if (closestCrewDistance <= 5.0) {
+        player.closestCrew = _closestCrew;
+        player.canKill = true;
+        if (player.killCooldown == 0) {
+            player.hudInteractString = <"Kill <0>", HeroIconString(HeroOf(closestCrew))>;
+        } else {
+            player.hudInteractString = "";
+        }
+    } else {
+        player.canKill = false;
+        player.hudInteractString = "";
+    }
+}
+
+/* If target player is alive, kill them and return true.
+ * Return false otherwise.
+ */
+define killPlayer(define target) "Kill Player" {
+    if (IsAlive(target)) {
+        CreateEffect(
+            VisibleTo : AllPlayers(),
+            Type      : Effect.Ring,
+            Color     : Color.Purple,
+            Position  : PositionOf(target),
+            Radius    : 1,
+            Reevaluation: EffectRev.None
+        );
+        ModifyVariable(corpses, Operation.AppendToArray, new Corpse(PositionOf(target), LastCreatedEntity()));
+        Kill(target);
+        return true;
+    } else {
+        return false;
+    }
+}
+
+rule: "Player: Imposter Interact (Kill)"
+Event.OngoingPlayer
+if (gameState == GameState.Play)
+if (playing)
+if (EventPlayer().role == PlayerRole.IMPOSTER)
+if (IsButtonHeld(EventPlayer(), Button.Interact))
+if (EventPlayer().canKill)
+if (EventPlayer().killCooldown == 0)
+{
+    if (killPlayer(EventPlayer().closestCrew)) {
+        EventPlayer().killCount += 1;
+        EventPlayer().canKill = false;
+        EventPlayer().killCooldown = KillCooldown.Value;
+        checkEndGame();
+    }
+}
+
+rule: "Player: Imposter Update Loop"
+Event.OngoingPlayer
+if (gameState == GameState.Play)
+if (playing)
+if (EventPlayer().role == PlayerRole.IMPOSTER)
+{
+    while (gameState == GameState.Play) {
+        playerUpdate(EventPlayer());
+        imposterUpdate(EventPlayer());
+        Wait(TICK);
+    }
+}

@@ -5,6 +5,9 @@ import "tasks.ostw";
 import "util.ostw";
 import "hud.ostw";
 import "lobby.ostw";
+import "corpse.ostw";
+import "imposter.ostw";
+import "crewmate.ostw";
 
 enum GameState {
     Waiting,
@@ -80,7 +83,9 @@ void reset() "Reset Game" {
     AllPlayers().incompleteTasks = EmptyArray();
     AllPlayers().completeTasks = EmptyArray();
     AllPlayers().canKill = false;
+    AllPlayers().canReportCorpse = false;
     AllPlayers().isTaskInProgress = false;
+    corpses = EmptyArray();
     totalTaskCount = 0;
     totalCompleteTaskCount = 0;
     started = false;
@@ -101,7 +106,7 @@ void endGame() "Play: End Game" {
 }
 
 void checkEndGame() "Play: Check End Game" {
-    if (totalCompleteTaskCount >= totalTaskCount) {
+    if (totalCompleteTaskCount >= totalTaskCount || CountOf(FilteredArray(AllLivingPlayers(), ArrayElement().role == PlayerRole.IMPOSTER)) == 0) {
         CreateHudText(
             VisibleTo   : AllPlayers(),
             Header      : "CREWMATES WIN!",

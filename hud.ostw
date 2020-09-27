@@ -90,20 +90,20 @@ void drawPlayerHUD(ref define player) {
     );
 
     CreateHudText(
-        VisibleTo   : player.role == PlayerRole.IMPOSTER ? player : EmptyArray(),
-        Header      : InputBindingString(ButtonValue(Button.Ultimate)),
-        HeaderColor : Color.Red,
-        Text        : "Sabotage",
-        TextColor   : Color.Red,
+        VisibleTo   : player,
+        Header      : InputBindingString(ButtonValue(Button.Reload)),
+        HeaderColor : Color.Orange,
+        Text        : player.hudReloadString,
+        TextColor   : Color.Orange,
         Location    : Location.Right,
         Spectators  : Spectators.VisibleNever,
-        Reevaluation: HudTextRev.VisibleTo,
+        Reevaluation: HudTextRev.VisibleToAndString,
         SortOrder   : 4
     );
 
     CreateHudText(
         VisibleTo   : player.isTaskInProgress ? player : EmptyArray(),
-        Header      : <"Task Progress: <0> / <1>", RoundToInteger(player.taskProgressTime, Rounding.Down), player.interactableTask.Duration>,
+        Header      : <"Task Progress: <0> / <1>", RoundToInteger(player.taskProgressTime*10, Rounding.Down), player.interactableTask.Duration*10>,
         HeaderColor : Color.Orange,
         Location    : Location.Top,
         Spectators  : Spectators.VisibleNever,
@@ -123,10 +123,10 @@ void drawPlayerHUD(ref define player) {
 
     CreateHudText(
         VisibleTo   : player,
-        Text        : <"Debug: InC: <0> / C: <1>\nState: <2>\nclosest: <3>, CanKill: <4>\nKill#: <5>",
+        Text        : <"Debug: InC: <0> / C: <1>\nState: <2>\ncl crew: <3>, CanKill: <4>\nKill#: <5>\ncl corp: <6>, CanRep: <7>",
                   player.incompleteTasks.Length, player.completeTasks.Length, gameState,
                   DistanceBetween(PositionOf(player), PositionOf(player.closestCrew)), player.canKill,
-                  player.killCount>,
+                  player.killCount, DistanceBetween(PositionOf(player), PositionOf(player.closestCorpse)), player.canReportCorpse>,
         TextColor   : Color.White,
         Location    : Location.Top,
         Spectators  : Spectators.VisibleNever,

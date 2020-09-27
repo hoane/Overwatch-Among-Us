@@ -6,27 +6,20 @@ enum PlayerRole {
 }
 
 globalvar Vector circleCenter = Vector(-208.7, 0.0, -16.4);
-playervar PlayerRole role;
+globalvar Corpse[] corpses = EmptyArray();
 
 // Player Variables
+playervar PlayerRole role;
 playervar define hudInteractString = "";
+playervar define hudReloadString = "";
 playervar Task[] incompleteTasks;
 playervar Task[] completeTasks = EmptyArray();
+playervar Corpse closestCorpse;
+playervar define canReportCorpse = false;
 
-// Crew variables
-playervar define numTasks = 0;
-playervar define hudTaskString = "";
-playervar define hudCompleteTaskString = "";
-playervar Task interactableTask;
-playervar define isTaskInProgress = false;
-playervar define taskProgressTime;
-
-// Imposter variables
-playervar define closestCrew;
-playervar define canKill = false;
-playervar define killCooldown = 0;
-playervar define killCount = 0;
-
+/* Initial setup for players.
+ * Disables most abilities and ui elements.
+ */
 rule: "Player Setup"
 Event.OnPlayerJoin
 {
@@ -55,27 +48,37 @@ Event.OnPlayerJoin
     ChaseVariableAtRate(EventPlayer().killCooldown, 0, 1.0, RateChaseReevaluation.None);
 }
 
+/* Puts an orb in the center of the map.
+ */
 void markCenter() {
     CreateEffect(AllPlayers(), Effect.Sphere, Color.Aqua, circleCenter, 1, EffectRev.None);
 }
 
+/* Calculates a position on the edge of a circle based on its center, radius, and the target 'slot' of the circle.
+ */
 Vector circlePosition(Vector center, ref define slot, ref define totalSlots, define radius) {
     define radians = (2 * Pi() * slot) / totalSlots;
     return Vector(XOf(center) + (radius * CosineFromRadians(radians)), YOf(center), ZOf(center) + (radius * SineFromRadians(radians)));
 }
 
+/* Place a player in the starting circle.
+ */
 void putPlayerInCircle(ref define player) {
     define pos = circlePosition(circleCenter, SlotOf(player), 10, 8.0)
     Teleport(AllPlayers()[SlotOf(player)], pos);
     SetFacing(AllPlayers()[SlotOf(player)], circleCenter - pos);
 }
 
-
+/* Set player status roles randomly per the imposter count.
+ */
 void assignRoles(ref define imposters) {
     AllPlayers().role = PlayerRole.CREW;
     ChooseArray(AllPlayers(), imposters).role = PlayerRole.IMPOSTER;
 }
 
+/* Give each player a selection of random tasks.
+ * Tasks only contribute to the total task target if the player is Crew.
+ */
 void assignTasks(ref define player, ref define numTasks) {
     player.numTasks = numTasks;
     player.incompleteTasks = ChooseArray(global_tasks, numTasks);
@@ -84,6 +87,8 @@ void assignTasks(ref define player, ref define numTasks) {
     }
 }
 
+/* Update the hud task strings.
+ */
 void updateHudStrings(ref define player) {
     player.hudTaskString = <"<0><1><2><3><4><5>",
         player.incompleteTasks.Length > 0 ? <"1. <0>\n", player.incompleteTasks[0].Name> : "",
@@ -103,6 +108,8 @@ void updateHudStrings(ref define player) {
     >;
 }
 
+/* Per-tick update logic for crew.
+ */
 void crewUpdate(ref define player) {
     if (player.isTaskInProgress) {
         updateCrewTaskProgress(player);
@@ -110,16 +117,22 @@ void crewUpdate(ref define player) {
         findCrewNearestTask(player);
     }
 
-    debugUpdate(player);
 }
 
+/* Debug-only update logic.
+ */
 void debugUpdate(ref define player) {
     if (IsButtonHeld(player, Button.Ultimate)) {
         totalCompleteTaskCount++;
         checkEndGame();
     }
+    if (IsButtonHeld(player, Button.Ability1)) {
+        killPlayer(RandomValueInArray(AllLivingPlayers()));
+    }
 }
 
+/* Check if task progress may continue or if it should cancel or complete.
+ */
 void updateCrewTaskProgress(ref define player) {
     // Still near enough to task to work on it, and holding the button?
     if (!IsButtonHeld(player, Button.Interact) || DistanceBetween(PositionOf(player), player.interactableTask.Position) > 3) {
@@ -139,7 +152,8 @@ void updateCrewTaskProgress(ref define player) {
     }
 }
 
-
+/* Find the nearest task to the crew member.
+ */
 void findCrewNearestTask(ref define player) {
     player.hudInteractString = "";
     // Find first incomplete task within 3 meters
@@ -147,86 +161,62 @@ void findCrewNearestTask(ref define player) {
         if (DistanceBetween(PositionOf(player), player.incompleteTasks[i].Position) <= 3) {
             player.hudInteractString = player.incompleteTasks[i].Name;
             player.interactableTask = player.incompleteTasks[i];
+            player.canTask = true;
 
             if (IsButtonHeld(player, Button.Interact)) {
-                player.isTaskInProgress = true;
-                player.taskProgressTime = 0;
-                ChaseVariableAtRate(player.taskProgressTime, player.interactableTask.Duration, 1.0, RateChaseReevaluation.None);
                 return;
             }
         }
     }
 }
 
-rule: "Player Update Loop"
-Event.OngoingPlayer
-if (gameState == GameState.Play)
-if (playing)
-if (EventPlayer().role == PlayerRole.CREW)
-{
-    while (gameState == GameState.Play) {
-        crewUpdate(EventPlayer());
-        Wait(TICK);
-    }
-}
 
-void imposterUpdate(ref define player) {
-    findImposterNearestCrew(player);
-}
-
-void findImposterNearestCrew(ref define player) {
-    define closestCrewDistance = 10.0;
-    define _closestCrew;
-    // Find first incomplete task within 3 meters
-    foreach (define crew in FilteredArray(AllLivingPlayers(), ArrayElement().role == PlayerRole.CREW)) {
-        define distance = DistanceBetween(PositionOf(player), PositionOf(crew));
-        if (distance <= closestCrewDistance) {
-            _closestCrew = crew;
-            closestCrewDistance = distance;
+/* Find the nearest corpse and check if it is near enough to be reportable.
+ */
+void findNearestCorpse(ref define player) {
+    define closestCorpseDistance = 10.0;
+    define _closestCorpse;
+    foreach (Corpse corpse in corpses) {
+        define distance = DistanceBetween(PositionOf(player), corpse.Position);
+        if (distance <= closestCorpseDistance) {
+            _closestCorpse = corpse;
+            closestCorpseDistance = distance;
         }
     }
 
-    if (closestCrewDistance <= 5.0) {
-        player.closestCrew = _closestCrew;
-        player.canKill = true;
-        player.hudInteractString = <"Kill <0>", HeroIconString(HeroOf(closestCrew))>;
+    if (closestCorpseDistance <= 5.0) {
+        player.closestCorpse = _closestCorpse;
+        player.canReportCorpse = true;
+        player.hudReloadString = "Report";
     } else {
-        player.canKill = false;
-        player.hudInteractString = "";
+        player.hudReloadString = "";
     }
 }
 
-rule: "Player: Imposter Interact (Kill)"
+/* Per-tick state update for all players, crew and imposters
+ */
+void playerUpdate(ref define player) {
+    findNearestCorpse(player);
+    debugUpdate(player);
+}
+
+rule: "Player: Interact (Report Corpse)"
 Event.OngoingPlayer
 if (gameState == GameState.Play)
 if (playing)
-if (EventPlayer().role == PlayerRole.IMPOSTER)
-if (IsButtonHeld(EventPlayer(), Button.Interact))
-if (EventPlayer().canKill)
-if (EventPlayer().killCooldown == 0)
+if (IsButtonHeld(EventPlayer(), Button.Reload))
+if (EventPlayer().canReportCorpse)
 {
-    EventPlayer().killCount += 1;
-    EventPlayer().canKill = false;
+    Corpse corpse = EventPlayer().closestCorpse;
+    EventPlayer().canReportCorpse = false;
     CreateEffect(
         VisibleTo : AllPlayers(),
-        Type      : Effect.Ring,
+        Type      : Effect.EnergySound,
         Color     : Color.Purple,
-        Position  : PositionOf(EventPlayer().closestCrew),
-        Radius    : 1,
+        Position  : corpse.Position,
+        Radius    : 5,
         Reevaluation: EffectRev.None
     );
-    Kill(EventPlayer().closestCrew);
-    EventPlayer().killCooldown = KillCooldown.Value;
-}
-
-rule: "Player: Imposter Update Loop"
-Event.OngoingPlayer
-if (gameState == GameState.Play)
-if (playing)
-if (EventPlayer().role == PlayerRole.IMPOSTER)
-{
-    while (gameState == GameState.Play) {
-        imposterUpdate(EventPlayer());
-        Wait(TICK);
-    }
+    ModifyVariable(corpses, Operation.RemoveFromArrayByValue, corpse);
+    DestroyEffect(corpse.Entity);
 }
