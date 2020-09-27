@@ -136,7 +136,7 @@ void checkEndGame() "Play: Check End Game" {
         );
         endGame();
     }
-    if (CountOf(AllAliveImposters()*2 >= CountOf(AllAliveCrew())) {
+    if (CountOf(AllAliveImposters()) >= CountOf(AllAliveCrew())) {
         CreateHudText(
             VisibleTo   : AllPlayers(),
             Header      : "IMPOSTERS WIN!",

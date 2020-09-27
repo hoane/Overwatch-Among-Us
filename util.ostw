@@ -10,3 +10,16 @@ define AllAlive(): FilteredArray(AllPlayers(), ArrayElement().isAlive);
 define AllAliveCrew(): FilteredArray(AllPlayers(), ArrayElement().isAlive && ArrayElement().role == PlayerRole.CREW);
 define AllAliveImposters(): FilteredArray(AllPlayers(), ArrayElement().isAlive && ArrayElement().role == PlayerRole.IMPOSTER);
 define AllGhosts(): FilteredArray(AllPlayers(), !ArrayElement().isAlive);
+
+/*
+rule: "DEBUG: counts"
+if (gameState == GameState.Play) {
+    CreateHudText(
+        VisibleTo: AllPlayers(),
+        Header: <"A: <0>, C: <1>, I: <2>, G: <3>", CountOf(AllAlive()), CountOf(AllAliveCrew()), CountOf(AllAliveImposters()), CountOf(AllGhosts())>,
+        HeaderColor: Color.White,
+        Location: Location.Right,
+        Reevaluation: HudTextRev.String
+    )
+}
+*/
