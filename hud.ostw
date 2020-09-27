@@ -52,7 +52,7 @@ void drawGlobalHUD() {
     );
 
     CreateHudText(
-        VisibleTo   : FilteredArray(AllPlayers(), ArrayElement().venting == true),
+        VisibleTo   : FilteredArray(AllPlayers(), ArrayElement().isVenting == true),
         Header      : "VENTING",
         HeaderColor : Color.Purple,
         Text        : "You are invisible, but cannot kill.\nUn-vent to regain corporeal form.",

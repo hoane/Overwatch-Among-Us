@@ -5,7 +5,7 @@ playervar define closestCrew;
 playervar define canKill = false;
 playervar define killCooldown = 0;
 playervar define canVent = false;
-playervar define venting = false;
+playervar define isVenting = false;
 playervar define originalHero;
 
 /* Per-tick state update for imposters.
@@ -17,7 +17,7 @@ void imposterUpdate(ref define player) {
         player.hudInteractString = "Vent";
     }
 
-    if (!player.venting) {
+    if (!player.isVenting) {
         findImposterNearestCrew(player);
     }
 }
@@ -28,7 +28,7 @@ void findImposterNearestCrew(ref define player) {
     define closestCrewDistance = 10.0;
     define _closestCrew;
     // Find first incomplete task within 3 meters
-    foreach (define crew in FilteredArray(AllLivingPlayers(), ArrayElement().role == PlayerRole.CREW)) {
+    foreach (define crew in FilteredArray(AllPlayers(), ArrayElement().role == PlayerRole.CREW && ArrayElement().isAlive)) {
         define distance = DistanceBetween(PositionOf(player), PositionOf(crew));
         if (distance < closestCrewDistance) {
             _closestCrew = crew;
@@ -70,7 +70,7 @@ define killPlayer(define target) "Kill Player" {
             Reevaluation: EffectRev.None
         );
         ModifyVariable(corpses, Operation.AppendToArray, new Corpse(PositionOf(target), LastCreatedEntity()));
-        Kill(target);
+        target.isAlive = false;
         return true;
     } else {
         return false;
@@ -87,7 +87,7 @@ if (EventPlayer().canVent)
 {
     EventPlayer().canKill = false;
     EventPlayer().canVent = false;
-    EventPlayer().venting = !EventPlayer().venting;
+    EventPlayer().isVenting = !EventPlayer().isVenting;
     Wait(0.5);
 }
 
@@ -96,7 +96,7 @@ Event.OngoingPlayer
 if (gameState == GameState.Play)
 if (playing)
 if (EventPlayer().role == PlayerRole.IMPOSTER)
-if (EventPlayer().venting)
+if (EventPlayer().isVenting)
 {
     SetInvisible(EventPlayer(), InvisibleTo.All);
     EventPlayer().originalHero = HeroOf(EventPlayer());
@@ -111,7 +111,7 @@ Event.OngoingPlayer
 if (gameState == GameState.Play)
 if (playing)
 if (EventPlayer().role == PlayerRole.IMPOSTER)
-if (!EventPlayer().venting)
+if (!EventPlayer().isVenting)
 {
     ForcePlayerHero(EventPlayer(), EventPlayer().originalHero);
     EnableMovementCollisionWithPlayers(EventPlayer());
@@ -128,7 +128,7 @@ if (playing)
 if (EventPlayer().role == PlayerRole.IMPOSTER)
 if (IsButtonHeld(EventPlayer(), Button.Interact))
 if (EventPlayer().canKill)
-if (!EventPlayer().venting)
+if (!EventPlayer().isVenting)
 if (EventPlayer().killCooldown == 0)
 {
     EventPlayer().canVent = false;
@@ -148,7 +148,7 @@ if (EventPlayer().role == PlayerRole.IMPOSTER)
     EventPlayer().killCooldown = KillCooldown.Value;
     EventPlayer().canKill = false;
     EventPlayer().canVent = false;
-    EventPlayer().venting = false;
+    EventPlayer().isVenting = false;
     while (gameState == GameState.Play) {
         playerUpdate(EventPlayer());
         imposterUpdate(EventPlayer());

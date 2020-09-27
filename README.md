@@ -8,9 +8,11 @@ Follow the instructions at https://github.com/ItsDeltin/Overwatch-Script-To-Work
 - [ ] Game States
   - [x] Setup
   - [x] Play
-  - [x] Voting
+  - [ ] Voting
     - [x] Players brought to voting area
     - [x] Most votes is ejected
+    - [ ] Vote timer
+  - [ ] Reset
 - [ ] Crewmate
   - [x] tasks
   - [ ] Special Rooms

@@ -16,8 +16,8 @@ define secretLocation: Vector(-143, -3, -100);
 
 void StartVotingRound() "Voting: Start Voting" {
     ForceThrottle(AllPlayers(), 0, 0, 0, 0, 0, 0);
-    Teleport(FilteredArray(AllPlayers(), ArrayElement().venting), secretLocation);
-    AllPlayers().venting = false;
+    Teleport(FilteredArray(AllPlayers(), ArrayElement().isVenting), secretLocation);
+    AllPlayers().isVenting = false;
     Wait(1);
     votingStarted = false;
     gameState = GameState.Voting;
@@ -48,7 +48,7 @@ void RenderVoting() "Voting Menu: Render Voting" {
 
 void RenderVotes() "Voting Menu: Render Votes" {
     renderedVotes = <"Votes: <0> Total", recordedVotes.Length / 2>;
-    define[] players = AllLivingPlayers();
+    define[] players = AllAlive();
     define[] votesByPlayer = EmptyArray();
     define[] votersByPlayer = EmptyArray();
     foreach (define p in players) {
@@ -117,7 +117,7 @@ if (!votingStarted)
     renderedVoting = "";
 
     votingOptions = [new MenuText("Select a Player to Kill")];
-    foreach (define player in AllLivingPlayers()) {
+    foreach (define player in AllAlive()) {
         ModifyVariable(votingOptions, Operation.AppendToArray,
             new VoteButton(<"<0>", IsDummyBot(player) ? HeroOf(player) : player>, player)
         );
@@ -183,7 +183,7 @@ if (votingStarted)
 rule: "Global: Voting: Votes Complete"
 if (gameState == GameState.Voting)
 if (votingStarted)
-if (recordedVotes.Length == CountOf(AllLivingPlayers()) * 2)
+if (recordedVotes.Length == CountOf(AllAlive()) * 2)
 {
     Wait(1);
     DestroyAllHudText();
@@ -202,7 +202,7 @@ if (recordedVotes.Length == CountOf(AllLivingPlayers()) * 2)
     );
 
     Wait(5);
-    Kill(playerToEject);
+    playerToEject.isAlive = false;
     Wait(5);
     DestroyAllHudText();
     Wait(0.5);
@@ -221,7 +221,7 @@ if (!EventPlayer().voted)
     EventPlayer().voted = true;
     Wait(RandomReal(3.0, 6.0));
     ModifyVariable(recordedVotes, Operation.AppendToArray,
-        [EventPlayer(), RandomValueInArray(AllLivingPlayers())]
+        [EventPlayer(), RandomValueInArray(AllAlive())]
     );
     RenderVoting();
 }

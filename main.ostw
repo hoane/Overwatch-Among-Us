@@ -56,7 +56,7 @@ if (gameState == GameState.Start)
 {
     if (EventPlayer().role == PlayerRole.IMPOSTER) {
         CreateEffect(
-            VisibleTo: FilteredArray(AllLivingPlayers(), ArrayElement().role == PlayerRole.IMPOSTER && ArrayElement() != EventPlayer()),
+            VisibleTo: FilteredArray(AllPlayers(), ArrayElement().role == PlayerRole.IMPOSTER && ArrayElement() != EventPlayer()),
             Type: Effect.BadAura,
             Color: Color.Red,
             Radius: 1,
@@ -101,6 +101,8 @@ void reset() "Reset Game" {
     AllPlayers().canVent = false;
     AllPlayers().canReportCorpse = false;
     AllPlayers().isTaskInProgress = false;
+    AllPlayers().isVenting = false;
+    AllPlayers().isAlive = true;
     corpses = EmptyArray();
     totalTaskCount = 0;
     totalCompleteTaskCount = 0;
@@ -122,7 +124,7 @@ void endGame() "Play: End Game" {
 }
 
 void checkEndGame() "Play: Check End Game" {
-    if (totalCompleteTaskCount >= totalTaskCount || CountOf(FilteredArray(AllLivingPlayers(), ArrayElement().role == PlayerRole.IMPOSTER)) == 0) {
+    if (totalCompleteTaskCount >= totalTaskCount || CountOf(AllAliveImposters()) == 0) {
         CreateHudText(
             VisibleTo   : AllPlayers(),
             Header      : "CREWMATES WIN!",
@@ -134,7 +136,7 @@ void checkEndGame() "Play: Check End Game" {
         );
         endGame();
     }
-    if (CountOf(FilteredArray(AllLivingPlayers(), ArrayElement().role == PlayerRole.IMPOSTER))*2 >= CountOf(AllLivingPlayers())) {
+    if (CountOf(AllAliveImposters()*2 >= CountOf(AllAliveCrew())) {
         CreateHudText(
             VisibleTo   : AllPlayers(),
             Header      : "IMPOSTERS WIN!",

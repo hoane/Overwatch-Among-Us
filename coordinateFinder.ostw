@@ -56,6 +56,9 @@ Event.OnPlayerJoin
     SetPrimaryFireEnabled(EventPlayer(), false);
     SetSecondaryFireEnabled(EventPlayer(), false);
     SetJumpEnabled(EventPlayer(), true);
+    SetDamageReceived(EventPlayer(), 0);
+
+    Teleport(EventPlayer(), Vector(-143, -3, -100));
     
     SetMoveSpeed(EventPlayer(), 300);
     CreateHudText(
@@ -74,4 +77,3 @@ Event.OnPlayerJoin
         SortOrder: 3
     );
 }
-//-143, -3, -100

@@ -10,6 +10,7 @@ globalvar Corpse[] corpses = EmptyArray();
 
 // Player Variables
 playervar PlayerRole role;
+playervar define isAlive = true;
 playervar define hudInteractString = "";
 playervar define hudReloadString = "";
 playervar Task[] incompleteTasks;
@@ -51,7 +52,7 @@ define respawnLocation: Vector(-199.46, 1.01, -7.59);
 rule: "Player: On Death"
 Event.OnDeath
 {
-    Wait(5);
+    Wait(10);
     Resurrect(EventPlayer());
     Teleport(EventPlayer(), respawnLocation);
 }
@@ -131,11 +132,11 @@ void crewUpdate(ref define player) {
  */
 void debugUpdate(ref define player) {
     if (IsButtonHeld(player, Button.Ultimate)) {
-        totalCompleteTaskCount++;
+        totalCompleteTaskCount += 5;
         checkEndGame();
     }
     if (IsButtonHeld(player, Button.Ability1)) {
-        killPlayer(RandomValueInArray(AllLivingPlayers()));
+        killPlayer(RandomValueInArray(AllAlive()));
     }
 }
 
@@ -206,6 +207,28 @@ void findNearestCorpse(ref define player) {
 void playerUpdate(ref define player) {
     findNearestCorpse(player);
     debugUpdate(player);
+}
+
+rule: "Player: isAlive"
+Event.OngoingPlayer
+if (gameState == GameState.Play || gameState == GameState.Voting)
+if (playing)
+if (EventPlayer().isAlive)
+{
+    EnableMovementCollisionWithPlayers(EventPlayer());
+    SetInvisible(EventPlayer(), InvisibleTo.None);
+    SetMoveSpeed(EventPlayer(), 100);
+}
+
+rule: "Player: !isAlive"
+Event.OngoingPlayer
+if (gameState == GameState.Play || gameState == GameState.Voting)
+if (playing)
+if (!EventPlayer().isAlive)
+{
+    DisableMovementCollisionWithPlayers(EventPlayer());
+    SetInvisible(EventPlayer(), InvisibleTo.All);
+    SetMoveSpeed(EventPlayer(), 300);
 }
 
 rule: "Player: Interact (Report Corpse)"

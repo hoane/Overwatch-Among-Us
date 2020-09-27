@@ -24,7 +24,7 @@ class Task {
             Color.White
         );
         CreateInWorldText(
-            FilteredArray(AllLivingPlayers(), ArrayElement().role == PlayerRole.CREW && DistanceBetween(PositionOf(ArrayElement()), Position) > 3 && ArrayElement().incompleteTasks.Contains(this)),
+            FilteredArray(AllPlayers(), ArrayElement().role == PlayerRole.CREW && DistanceBetween(PositionOf(ArrayElement()), Position) > 3 && ArrayElement().incompleteTasks.Contains(this)),
             "▼", Position, 4, Clipping.DoNotClip,
             InworldTextRev.VisibleTo,
             Color.Green
