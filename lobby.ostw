@@ -13,6 +13,7 @@ globalvar NumberOption NumBots = new NumberOption("Bot Count", 0, 9, 8, 1, "");
 globalvar HostMenuOption[] options = [
     new ActionButton("Start Game", 0),
     NumImposters,
+    VotingTime,
     NumTasks,
     KillCooldown,
     NumBots

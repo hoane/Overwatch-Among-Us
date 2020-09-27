@@ -23,16 +23,16 @@ Follow the instructions at https://github.com/ItsDeltin/Overwatch-Script-To-Work
   - [x] Kill cooldown
   - [x] Venting
     - [x] Enter/Exit Vent
-    - [ ] Unravel venting on state transitions, e.g. voting
+    - [x] Unravel venting on state transitions, e.g. voting
       - [x] voting secretly unravels venting
-      - [ ] game end
+      - [x] game end
   - [ ] Sabotage
 - [ ] Player
   - [x] Report Corpse
   - [ ] Emergency Meeting
 - [ ] Ghost
-  - [ ] Players should go into a special Ghost state when killed instead of actually dying
-  - [ ] Ghost tasks
+  - [x] Players should go into a special Ghost state when killed instead of actually dying
+  - [x] Ghost tasks
   - [ ] Ghosts can see each other
 - [ ] End Conditions 
   - [x] Task Victory

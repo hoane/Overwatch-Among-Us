@@ -7,6 +7,7 @@ globalvar define renderedVoting = "";
 globalvar define votingStarted = false;
 globalvar define votingTimer = 0;
 globalvar define playerToEject;
+globalvar define forbidVoting;
 
 playervar define renderedVotingMenu = "";
 playervar define votingMenuSelected = 0;
@@ -140,6 +141,7 @@ if (!votingStarted)
     votingTimer = VotingTime.Value;
     ChaseVariableAtRate(votingTimer, 0, 1, RateChaseReevaluation.None);
     votingStarted = true;
+    forbidVoting = false;
 
     CreateHudText(
         VisibleTo: AllPlayers(),
@@ -186,8 +188,9 @@ if (votingStarted)
 rule: "Global: Voting: Votes Complete"
 if (gameState == GameState.Voting)
 if (votingStarted)
-if (recordedVotes.Length == CountOf(AllAlive()) * 2)
+if (recordedVotes.Length == CountOf(AllAlive()) * 2 || votingTimer == 0)
 {
+    forbidVoting = true;
     Wait(1);
     DestroyAllHudText();
     Wait(0.5);
@@ -220,6 +223,7 @@ if (votingStarted)
 if (IsDummyBot(EventPlayer()))
 if (EventPlayer().isAlive)
 if (!EventPlayer().voted)
+if (!forbidVoting)
 {
     EventPlayer().voted = true;
     Wait(RandomReal(3.0, 6.0));
@@ -259,6 +263,7 @@ if (gameState == GameState.Voting)
 if (votingStarted)
 if (!EventPlayer().voted)
 if (IsButtonHeld(EventPlayer(), Button.Interact))
+if (!forbidVoting)
 {
     votingOptions[EventPlayer().votingMenuSelected].OnSelect();
 }

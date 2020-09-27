@@ -17,7 +17,7 @@ class Task {
             Type: Effect.Sphere,
             Color: Color.LimeGreen,
             Position: Position,
-            Radius: 1.0,
+            Radius: 0.75,
             Reevaluation: EffectRev.VisibleTo
         );
         CreateInWorldText(
@@ -45,7 +45,10 @@ globalvar Task[] global_tasks = [
     new Task("Admire The View", Vector(-230.5, 0.2, -32.8), 5.0),
     new Task("Perform A Dance Routine", Vector(-179.4, -3.5, -66.0), 8.0),
     new Task("Unpack Boxes", Vector(-243.2, -0.5, 1.8), 12.0),
-    new Task("Serve Wine", Vector(-186.7, 2.0, -19.8), 5.0)
+    new Task("Watch TV", Vector(-230.42, -0.48, 12.09), 15.0),
+    new Task("Weed The Garden", Vector(-253.54, -4.04, 5.57), 8.0),
+    new Task("Chop The Crab", Vector(-186.13, 2.16, -20.49), 8.0),
+    new Task("Serve The Wine", Vector(-186.7, 2.0, -19.8), 5.0)
 ];
 
 void drawTasks() {
@@ -57,4 +60,7 @@ void drawTasks() {
     global_tasks[4].draw();
     global_tasks[5].draw();
     global_tasks[6].draw();
+    global_tasks[7].draw();
+    global_tasks[8].draw();
+    global_tasks[9].draw();
 }
