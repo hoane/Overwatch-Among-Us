@@ -6,11 +6,38 @@ rule: "Setup"
     DisableCompletion();
     DisableMusic();
     DisableScoring();
+    SetMatchTime(0);
+    PauseMatchTime();
+}
+
+rule: "Player: Interact Held Speedup"
+Event.OngoingPlayer
+if (IsButtonHeld(EventPlayer(), Button.Interact))
+if (!IsButtonHeld(EventPlayer(), Button.Crouch))
+{
+    SetMoveSpeed(EventPlayer(), 600);
+}
+
+rule: "Player: Interact Not Held Crouch Not Held Normal speed"
+Event.OngoingPlayer
+if (!IsButtonHeld(EventPlayer(), Button.Interact))
+if (!IsButtonHeld(EventPlayer(), Button.Crouch))
+{
+    SetMoveSpeed(EventPlayer(), 300);
+}
+
+rule: "Player: Crouch Held Slowdown"
+Event.OngoingPlayer
+if (!IsButtonHeld(EventPlayer(), Button.Interact))
+if (IsButtonHeld(EventPlayer(), Button.Crouch))
+{
+    SetMoveSpeed(EventPlayer(), 30);
 }
 
 rule: "Player Setup"
 Event.OnPlayerJoin
 {
+    ForcePlayerHero(EventPlayer(), Hero.Ana);
     DisableHeroHud(EventPlayer());
     DisableGameModeHud(EventPlayer());
     DisableKillFeed(EventPlayer());
@@ -22,8 +49,8 @@ Event.OnPlayerJoin
     DisableScoreboard(EventPlayer());
     SetUltimateAbilityEnabled(EventPlayer(), false);
     SetMeleeEnabled(EventPlayer(), false);
-    SetCrouchEnabled(EventPlayer(), false);
     SetReloadEnabled(EventPlayer(), false);
+    SetCrouchEnabled(EventPlayer(), false);
     SetAbility1Enabled(EventPlayer(), false);
     SetAbility2Enabled(EventPlayer(), false);
     SetPrimaryFireEnabled(EventPlayer(), false);
@@ -31,5 +58,19 @@ Event.OnPlayerJoin
     SetJumpEnabled(EventPlayer(), true);
     
     SetMoveSpeed(EventPlayer(), 300);
-    CreateHudText(EventPlayer(), Header: <"X: <0>, Y: <1>, Z: <2>", XOf(PositionOf(EventPlayer())), YOf(PositionOf(EventPlayer())), ZOf(PositionOf(EventPlayer()))>);
+    CreateHudText(
+        VisibleTo: EventPlayer(),
+        Header: <"X: <0>", XOf(PositionOf(EventPlayer()))>,
+        SortOrder: 1
+    );
+    CreateHudText(
+        VisibleTo: EventPlayer(),
+        Header: <"Y: <0>", YOf(PositionOf(EventPlayer()))>,
+        SortOrder: 2
+    );
+    CreateHudText(
+        VisibleTo: EventPlayer(),
+        Header: <"Z: <0>", ZOf(PositionOf(EventPlayer()))>,
+        SortOrder: 3
+    );
 }
