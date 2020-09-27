@@ -6,7 +6,6 @@ playervar define canKill = false;
 playervar define killCooldown = 0;
 playervar define canVent = false;
 playervar define isVenting = false;
-playervar define originalHero;
 
 /* Per-tick state update for imposters.
  */
@@ -61,15 +60,7 @@ define isVentNearby(ref define player) {
  */
 define killPlayer(define target) "Kill Player" {
     if (IsAlive(target)) {
-        CreateEffect(
-            VisibleTo : AllPlayers(),
-            Type      : Effect.Ring,
-            Color     : Color.Purple,
-            Position  : PositionOf(target),
-            Radius    : 1,
-            Reevaluation: EffectRev.None
-        );
-        ModifyVariable(corpses, Operation.AppendToArray, new Corpse(PositionOf(target), LastCreatedEntity()));
+        ModifyVariable(corpses, Operation.AppendToArray, new Corpse(SafePlayerName(target), PositionOf(target)));
         target.isAlive = false;
         return true;
     } else {
@@ -98,12 +89,12 @@ if (playing)
 if (EventPlayer().role == PlayerRole.IMPOSTER)
 if (EventPlayer().isVenting)
 {
+    StopChasingVariable(EventPlayer().killCooldown);
     SetInvisible(EventPlayer(), InvisibleTo.All);
     EventPlayer().originalHero = HeroOf(EventPlayer());
     ForcePlayerHero(EventPlayer(), Hero.Zenyatta);
     SetMoveSpeed(EventPlayer(), 400);
     DisableMovementCollisionWithPlayers(EventPlayer());
-    Wait(0.5);
 }
 
 rule: "Player: Imposter UnVenting"
@@ -113,11 +104,12 @@ if (playing)
 if (EventPlayer().role == PlayerRole.IMPOSTER)
 if (!EventPlayer().isVenting)
 {
+    StopChasingVariable(EventPlayer().killCooldown);
+    ChaseVariableAtRate(EventPlayer().killCooldown, 0, 1.0, RateChaseReevaluation.None);
     ForcePlayerHero(EventPlayer(), EventPlayer().originalHero);
     EnableMovementCollisionWithPlayers(EventPlayer());
     SetMoveSpeed(EventPlayer(), 100);
     SetInvisible(EventPlayer(), InvisibleTo.None);
-    Wait(0.5);
 }
 
 
@@ -146,6 +138,8 @@ if (playing)
 if (EventPlayer().role == PlayerRole.IMPOSTER)
 {
     EventPlayer().killCooldown = KillCooldown.Value;
+    StopChasingVariable(EventPlayer().killCooldown);
+    ChaseVariableAtRate(EventPlayer().killCooldown, 0, 1.0, RateChaseReevaluation.None);
     EventPlayer().canKill = false;
     EventPlayer().canVent = false;
     EventPlayer().isVenting = false;

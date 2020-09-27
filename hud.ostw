@@ -62,6 +62,18 @@ void drawGlobalHUD() {
         Reevaluation: HudTextRev.VisibleTo,
         SortOrder   : 4
     );
+
+    CreateHudText(
+        VisibleTo   : FilteredArray(AllPlayers(), ArrayElement().isAlive == false),
+        Header      : "YOU ARE DEAD",
+        HeaderColor : Color.White,
+        Text        : "Tip: Dead crew can still perform tasks!",
+        TextColor   : Color.White,
+        Location    : Location.Top,
+        Spectators  : Spectators.VisibleNever,
+        Reevaluation: HudTextRev.VisibleTo,
+        SortOrder   : 4
+    );
 }
 
 void drawPlayerHUD(ref define player) {

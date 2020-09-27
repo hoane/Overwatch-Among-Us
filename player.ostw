@@ -17,6 +17,7 @@ playervar Task[] incompleteTasks;
 playervar Task[] completeTasks = EmptyArray();
 playervar Corpse closestCorpse;
 playervar define canReportCorpse = false;
+playervar define originalHero;
 
 /* Initial setup for players.
  * Disables most abilities and ui elements.
@@ -43,8 +44,6 @@ Event.OnPlayerJoin
     SetSecondaryFireEnabled(EventPlayer(), false);
     SetJumpEnabled(EventPlayer(), false);
     SetDamageReceived(EventPlayer(), 0);
-
-    ChaseVariableAtRate(EventPlayer().killCooldown, 0, 1.0, RateChaseReevaluation.None);
 }
 
 define respawnLocation: Vector(-199.46, 1.01, -7.59);
@@ -226,8 +225,10 @@ if (gameState == GameState.Play || gameState == GameState.Voting)
 if (playing)
 if (!EventPlayer().isAlive)
 {
+    EventPlayer().originalHero = HeroOf(EventPlayer());
     DisableMovementCollisionWithPlayers(EventPlayer());
     SetInvisible(EventPlayer(), InvisibleTo.All);
+    ForcePlayerHero(EventPlayer(), Hero.Zenyatta);
     SetMoveSpeed(EventPlayer(), 300);
 }
 
@@ -236,6 +237,7 @@ Event.OngoingPlayer
 if (gameState == GameState.Play)
 if (playing)
 if (IsButtonHeld(EventPlayer(), Button.Reload))
+if (EventPlayer().isAlive)
 if (EventPlayer().canReportCorpse)
 {
     Corpse corpse = EventPlayer().closestCorpse;
@@ -249,7 +251,8 @@ if (EventPlayer().canReportCorpse)
         Reevaluation: EffectRev.None
     );
     ModifyVariable(corpses, Operation.RemoveFromArrayByValue, corpse);
-    DestroyEffect(corpse.Entity);
+    DestroyEffect(corpse.EntityId);
+    DestroyInWorldText(corpse.TextId);
 
     StartVotingRound();
 }

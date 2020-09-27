@@ -39,3 +39,18 @@ Follow the instructions at https://github.com/ItsDeltin/Overwatch-Script-To-Work
   - [x] No Impostors Victory
   - [x] Imposters == Crew Victory
   
+# Testing Todo
+- [ ] Gameplay
+  - [ ] Players can enter the game
+  - [ ] Non-host players can see the config menu but not operate it
+  - [ ] Imposter players can identify other imposters
+  - [ ] Ghosts
+    - [ ] Ghosts can continue play
+    - [ ] Living players cannot percieve ghosts
+- [ ] UX
+  - [ ] UX elements appear correctly to non-host player
+  - [ ] No missing UX due to 128 ui text limit
+- [ ] Edge Conditions
+  - [ ] Kill & report simultaneously
+  - [ ] Report when venting
+  - [ ] Report when entering / exiting venting
