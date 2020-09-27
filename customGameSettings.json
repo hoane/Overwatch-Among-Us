@@ -33,7 +33,8 @@
             "Game Mode Start": "Immediately",
             "Hero Limit": "Off",
             "Respawn As Random Hero": true,
-            "Respawn Time Scalar": 0
+            "Respawn Time Scalar": 0,
+            "Spawn Health Packs": "Disabled"
         },
         "Deathmatch": {
             "Enabled": true,

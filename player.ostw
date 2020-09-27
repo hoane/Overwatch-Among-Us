@@ -40,9 +40,7 @@ Event.OnPlayerJoin
     SetAbility2Enabled(EventPlayer(), false);
     SetPrimaryFireEnabled(EventPlayer(), false);
     SetSecondaryFireEnabled(EventPlayer(), false);
-    //SetDamageReceived(EventPlayer(), 0);
     SetJumpEnabled(EventPlayer(), false);
-    //SetMoveSpeed(EventPlayer(), 300);
 
     CreateHudText(EventPlayer(), Subheader: <"(X: <0>, Y: <1>, Z: <2>)", XOf(PositionOf(EventPlayer())), YOf(PositionOf(EventPlayer())), ZOf(PositionOf(EventPlayer()))>);
     ChaseVariableAtRate(EventPlayer().killCooldown, 0, 1.0, RateChaseReevaluation.None);

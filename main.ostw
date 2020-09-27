@@ -79,7 +79,7 @@ if (gameState == GameState.Play) {
     drawPlayerHUD(EventPlayer());
     updateHudStrings(EventPlayer());
 
-    SetMoveSpeed(AllPlayers(), 300);
+    SetMoveSpeed(AllPlayers(), 100);
 }
 
 rule: "Start"
