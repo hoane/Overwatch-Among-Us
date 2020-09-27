@@ -82,9 +82,11 @@ if (gameState == GameState.Play) {
     updateHudStrings(EventPlayer());
 
     SetMoveSpeed(AllPlayers(), 100);
+    StopForcingThrottle(AllPlayers());
 }
 
 rule: "Start"
+if (gameState == GameState.Waiting)
 if (!started)
 if (IsTrueForAll(AllPlayers(), HasSpawned(ArrayElement()) || IsDead(ArrayElement())))
 {
@@ -94,7 +96,6 @@ if (IsTrueForAll(AllPlayers(), HasSpawned(ArrayElement()) || IsDead(ArrayElement
 }
 
 void reset() "Reset Game" {
-    gameState = GameState.Waiting;
     AllPlayers().incompleteTasks = EmptyArray();
     AllPlayers().completeTasks = EmptyArray();
     AllPlayers().canKill = false;
@@ -102,50 +103,64 @@ void reset() "Reset Game" {
     AllPlayers().canReportCorpse = false;
     AllPlayers().isTaskInProgress = false;
     AllPlayers().isVenting = false;
-    AllPlayers().isAlive = true;
-    corpses = EmptyArray();
+    AllPlayers().hasCorpse = false;
     totalTaskCount = 0;
     totalCompleteTaskCount = 0;
-    started = false;
+
+    AllPlayers().isAlive = true;
+
     playing = false;
+    started = false;
 }
 
 void endGame() "Play: End Game" {
+    gameState = GameState.Waiting;
     playing = false;
     SetMoveSpeed(AllPlayers(), 0);
-    Wait(5);
+    Wait(4);
+
+    foreach (define player in AllPlayers()) {
+        if (!player.isAlive) {
+            ForcePlayerHero(player, player.originalHero);
+            EnableMovementCollisionWithPlayers(player);
+            SetInvisible(player, InvisibleTo.None);
+        }
+    }
 
     DestroyAllHudText();
     DestroyAllIcons();
     DestroyAllInworldText();
     DestroyAllDummyBots();
     DestroyAllEffects();
+
     reset();
 }
 
 void checkEndGame() "Play: Check End Game" {
-    if (totalCompleteTaskCount >= totalTaskCount || CountOf(AllAliveImposters()) == 0) {
-        CreateHudText(
-            VisibleTo   : AllPlayers(),
-            Header      : "CREWMATES WIN!",
-            HeaderColor : Color.Blue,
-            Location    : Location.Top,
-            Spectators  : Spectators.VisibleAlways,
-            Reevaluation: HudTextRev.None,
-            SortOrder   : 10
-        );
-        endGame();
-    }
-    if (CountOf(AllAliveImposters()) >= CountOf(AllAliveCrew())) {
-        CreateHudText(
-            VisibleTo   : AllPlayers(),
-            Header      : "IMPOSTERS WIN!",
-            HeaderColor : Color.Red,
-            Location    : Location.Top,
-            Spectators  : Spectators.VisibleAlways,
-            Reevaluation: HudTextRev.None,
-            SortOrder   : 10
-        );
-        endGame();
+    if (playing) {
+        if (totalCompleteTaskCount >= totalTaskCount || CountOf(AllAliveImposters()) == 0) {
+            CreateHudText(
+                VisibleTo   : AllPlayers(),
+                Header      : "CREWMATES WIN!",
+                HeaderColor : Color.Blue,
+                Location    : Location.Top,
+                Spectators  : Spectators.VisibleAlways,
+                Reevaluation: HudTextRev.None,
+                SortOrder   : 10
+            );
+            endGame();
+        }
+        if (CountOf(AllAliveImposters()) >= CountOf(AllAliveCrew())) {
+            CreateHudText(
+                VisibleTo   : AllPlayers(),
+                Header      : "IMPOSTERS WIN!",
+                HeaderColor : Color.Red,
+                Location    : Location.Top,
+                Spectators  : Spectators.VisibleAlways,
+                Reevaluation: HudTextRev.None,
+                SortOrder   : 10
+            );
+            endGame();
+        }
     }
 }

@@ -13,15 +13,21 @@ class Task {
 
     void draw() {
         CreateEffect(
-            FilteredArray(AllPlayers(), DistanceBetween(PositionOf(ArrayElement()), Position) < 30),
-            Effect.Sphere, Color.LimeGreen, Position, 1.0,
-            EffectRev.VisibleTo
+            VisibleTo: PlayersWithinRadius(Position, 30),
+            Type: Effect.Sphere,
+            Color: Color.LimeGreen,
+            Position: Position,
+            Radius: 1.0,
+            Reevaluation: EffectRev.VisibleTo
         );
         CreateInWorldText(
-            FilteredArray(AllPlayers(), DistanceBetween(PositionOf(ArrayElement()), Position) <= 3),
-            Name, Position, 4, Clipping.DoNotClip,
-            InworldTextRev.VisibleTo,
-            Color.White
+            VisibleTo: PlayersWithinRadius(Position, 3),
+            Header: Name,
+            TextColor: Color.White,
+            Position: Position,
+            Scale: 4,
+            Clipping: Clipping.DoNotClip,
+            Reevaluation: InworldTextRev.VisibleTo
         );
         CreateInWorldText(
             FilteredArray(AllPlayers(), ArrayElement().role == PlayerRole.CREW && DistanceBetween(PositionOf(ArrayElement()), Position) > 3 && ArrayElement().incompleteTasks.Contains(this)),

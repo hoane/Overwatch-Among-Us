@@ -1,31 +1,13 @@
 import "main.ostw";
 
 class Corpse {
-    public define Name;
+    public define Player;
     public define Position;
     public define EntityId;
     public define TextId;
 
-    public Corpse(ref define name, ref define position) {
-        this.Name = Name;
+    public Corpse(ref define player, ref define position) {
+        this.Player = player;
         this.Position = position;
-        CreateEffect(
-            VisibleTo : AllPlayers(),
-            Type      : Effect.Ring,
-            Color     : Color.Purple,
-            Position  : this.Position,
-            Radius    : 1,
-            Reevaluation: EffectRev.None
-        );
-        this.EntityId = LastCreatedEntity();
-        CreateInWorldText(
-            VisibleTo : FilteredArray(AllPlayers(), DistanceBetween(PositionOf(ArrayElement()), PositionOf(Position)) < 15),
-            Header    : name,
-            Position  : this.Position,
-            Scale     : 1.0,
-            Clipping  : Clipping.ClipAgainstSurfaces,
-            Reevaluation: InworldTextRev.VisibleTo
-        );
-        this.TextId = LastTextID();
     }
 }

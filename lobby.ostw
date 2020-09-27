@@ -1,11 +1,10 @@
 import "main.ostw";
 
-globalvar define hostMenuOpen = false;
 globalvar define hostMenuSelected = 0;
 globalvar define renderedHostMenu = "";
 
 globalvar NumberOption NumImposters = new NumberOption("Imposter Count", 1, 3, 3, 1, "");
-globalvar NumberOption VotingTime = new NumberOption("Voting Time", 15, 120, 15, 5, "");
+globalvar NumberOption VotingTime = new NumberOption("Voting Time", 15, 120, 60, 5, "");
 globalvar NumberOption NumTasks = new NumberOption("Task Count", 2, 6, 3, 1, "");
 globalvar NumberOption KillCooldown = new NumberOption("Kill Cooldown", 5, 120, 10, 5, "");
 
@@ -69,13 +68,10 @@ if (gameState == GameState.Lobby)
         SortOrder: 3,
         Spectators: Spectators.VisibleNever
     );
-
-    hostMenuOpen = true;
 }
 
 rule: "Host Menu: Previous Option"
 if (gameState == GameState.Lobby)
-if (hostMenuOpen)
 if (ThrottleOf(HostPlayer()).Z > 0)
 {
     hostMenuSelected--;
@@ -85,7 +81,6 @@ if (ThrottleOf(HostPlayer()).Z > 0)
 
 rule: "Host Menu: Next Option"
 if (gameState == GameState.Lobby)
-if (hostMenuOpen)
 if (ThrottleOf(HostPlayer()).Z < 0)
 {
     hostMenuSelected++;
@@ -95,7 +90,6 @@ if (ThrottleOf(HostPlayer()).Z < 0)
 
 rule: "Host Menu: Left"
 if (gameState == GameState.Lobby)
-if (hostMenuOpen)
 if (ThrottleOf(HostPlayer()).X > 0)
 {
     options[hostMenuSelected].OnLeft();
@@ -103,7 +97,6 @@ if (ThrottleOf(HostPlayer()).X > 0)
 
 rule: "Host Menu: Right"
 if (gameState == GameState.Lobby)
-if (hostMenuOpen)
 if (ThrottleOf(HostPlayer()).X < 0)
 {
     options[hostMenuSelected].OnRight();
@@ -111,7 +104,6 @@ if (ThrottleOf(HostPlayer()).X < 0)
 
 rule: "Host Menu: Press"
 if (gameState == GameState.Lobby)
-if (hostMenuOpen)
 if (IsButtonHeld(HostPlayer(), Button.Interact))
 {
     options[hostMenuSelected].OnSelect();
@@ -144,7 +136,6 @@ class ActionButton : HostMenuOption {
     public override void OnSelect()
     {
         if (Action == 0) {
-            root.hostMenuOpen = false;
             root.spawnBots(root.NumBots.Value);
             DestroyAllHudText();
             Wait(5);

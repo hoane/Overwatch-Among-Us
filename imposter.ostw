@@ -60,7 +60,8 @@ define isVentNearby(ref define player) {
  */
 define killPlayer(define target) "Kill Player" {
     if (IsAlive(target)) {
-        ModifyVariable(corpses, Operation.AppendToArray, new Corpse(SafePlayerName(target), PositionOf(target)));
+        target.corpse = new Corpse(target, PositionOf(target));
+        target.hasCorpse = true;
         target.isAlive = false;
         return true;
     } else {

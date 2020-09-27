@@ -6,7 +6,6 @@ enum PlayerRole {
 }
 
 globalvar Vector circleCenter = Vector(-208.7, 0.0, -16.4);
-globalvar Corpse[] corpses = EmptyArray();
 
 // Player Variables
 playervar PlayerRole role;
@@ -16,6 +15,8 @@ playervar define hudReloadString = "";
 playervar Task[] incompleteTasks;
 playervar Task[] completeTasks = EmptyArray();
 playervar Corpse closestCorpse;
+playervar Corpse corpse;
+playervar define hasCorpse = false;
 playervar define canReportCorpse = false;
 playervar define originalHero;
 
@@ -51,7 +52,6 @@ define respawnLocation: Vector(-199.46, 1.01, -7.59);
 rule: "Player: On Death"
 Event.OnDeath
 {
-    Wait(10);
     Resurrect(EventPlayer());
     Teleport(EventPlayer(), respawnLocation);
 }
@@ -152,10 +152,10 @@ void findCrewNearestTask(ref define player) {
 void findNearestCorpse(ref define player) {
     define closestCorpseDistance = 10.0;
     define _closestCorpse;
-    foreach (Corpse corpse in corpses) {
-        define distance = DistanceBetween(PositionOf(player), corpse.Position);
+    foreach (define p in FilteredArray(AllPlayers(), ArrayElement().hasCorpse)) {
+        define distance = DistanceBetween(PositionOf(player), p.corpse.Position);
         if (distance <= closestCorpseDistance) {
-            _closestCorpse = corpse;
+            _closestCorpse = p.corpse;
             closestCorpseDistance = distance;
         }
     }
@@ -175,17 +175,19 @@ void playerUpdate(ref define player) {
     findNearestCorpse(player);
     debugUpdate(player);
 }
-
+/*
 rule: "Player: isAlive"
 Event.OngoingPlayer
 if (gameState == GameState.Play || gameState == GameState.Voting)
 if (playing)
 if (EventPlayer().isAlive)
 {
+    ForcePlayerHero(EventPlayer(), EventPlayer().originalHero);
     EnableMovementCollisionWithPlayers(EventPlayer());
     SetInvisible(EventPlayer(), InvisibleTo.None);
     SetMoveSpeed(EventPlayer(), 100);
 }
+*/
 
 rule: "Player: !isAlive"
 Event.OngoingPlayer
@@ -208,19 +210,50 @@ if (IsButtonHeld(EventPlayer(), Button.Reload))
 if (EventPlayer().isAlive)
 if (EventPlayer().canReportCorpse)
 {
-    Corpse corpse = EventPlayer().closestCorpse;
     EventPlayer().canReportCorpse = false;
-    CreateEffect(
-        VisibleTo : AllPlayers(),
-        Type      : Effect.EnergySound,
-        Color     : Color.Purple,
-        Position  : corpse.Position,
-        Radius    : 5,
-        Reevaluation: EffectRev.None
-    );
-    ModifyVariable(corpses, Operation.RemoveFromArrayByValue, corpse);
-    DestroyEffect(corpse.EntityId);
-    DestroyInWorldText(corpse.TextId);
+    DestroyEffect(EventPlayer().closestCorpse.EntityId);
+    DestroyInWorldText(EventPlayer().closestCorpse.TextId);
+    EventPlayer().closestCorpse.Player.hasCorpse = false;
 
     StartVotingRound();
+}
+
+rule: "Player: Initialization"
+Event.OngoingPlayer
+if (gameState == GameState.Lobby)
+{
+    EventPlayer().originalHero = HeroOf(EventPlayer());
+}
+
+rule: "Player: Render Corpse"
+Event.OngoingPlayer
+if (EventPlayer().hasCorpse)
+{
+    CreateEffect(
+        VisibleTo : AllPlayers(),
+        Type      : Effect.Ring,
+        Color     : Color.Purple,
+        Position  : EventPlayer().corpse.Position,
+        Radius    : 1,
+        Reevaluation: EffectRev.None
+    );
+    EventPlayer().corpse.EntityId = LastCreatedEntity();
+
+    CreateInWorldText(
+        VisibleTo : PlayersWithinRadius(EventPlayer().corpse.Position, 15),
+        Header    : SafePlayerName(EventPlayer()),
+        Position  : EventPlayer().corpse.Position,
+        Scale     : 1.0,
+        Clipping  : Clipping.ClipAgainstSurfaces,
+        Reevaluation: InworldTextRev.VisibleTo
+    );
+    EventPlayer().corpse.TextId = LastTextID();
+
+}
+
+rule: "Player: Destroy Corpse"
+Event.OngoingPlayer
+if (!EventPlayer().hasCorpse)
+{
+    
 }

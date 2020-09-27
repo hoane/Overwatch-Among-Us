@@ -1,6 +1,32 @@
 import "main.ostw";
+
+define[] ALLOWED_HEROS: [
+    Hero.Ana,
+    Hero.Ashe,
+    Hero.Baptiste,
+    Hero.Bastion,
+    Hero.Brigitte,
+    Hero.Doomfist,
+    Hero.Echo,
+    Hero.Mccree,
+    Hero.Mei,
+    Hero.Moira,
+    Hero.Orisa,
+    Hero.Pharah,
+    Hero.Reaper,
+    Hero.Reinhardt,
+    Hero.Roadhog,
+    Hero.Soldier76,
+    Hero.Symmetra,
+    Hero.Torbjorn,
+    Hero.Tracer,
+    Hero.Widowmaker,
+    Hero.Winston,
+    Hero.Zarya
+];
+
 void spawnBots(ref define botsToCreate) {
-    define botHeros = ChooseArray(AllowedHeroes(HostPlayer()), botsToCreate)
+    define botHeros = ChooseArray(ALLOWED_HEROS, botsToCreate)
     for (define i = 0; i < botsToCreate; i++) {
         CreateDummyBot(botHeros[i], Team.All, -1, Vector(-190, 1 + i * 2, -30));
     }

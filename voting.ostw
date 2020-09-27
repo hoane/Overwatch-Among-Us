@@ -15,7 +15,7 @@ playervar define voted = false;
 define secretLocation: Vector(-143, -3, -100);
 
 void StartVotingRound() "Voting: Start Voting" {
-    ForceThrottle(AllPlayers(), 0, 0, 0, 0, 0, 0);
+    SetMoveSpeed(AllPlayers());
     Teleport(FilteredArray(AllPlayers(), ArrayElement().isVenting), secretLocation);
     AllPlayers().isVenting = false;
     Wait(1);
@@ -82,15 +82,20 @@ void RenderVotes() "Voting Menu: Render Votes" {
             maxVotesPlayer = players[i];
             isTie = false;
         }
-        renderedVotes = <"<0>\n<1> Votes For <2> (<3> )",
+        if (votesByPlayer[i] > 0) {
+            renderedVotes = <"<0>\n<1> Votes For <2> (<3> )",
+                renderedVotes,
+                votesByPlayer[i], SafePlayerName(players[i]), votersByPlayer[i]
+            >;
+        }
+    }
+
+    if (nobodyVotes > 0) {
+        renderedVotes = <"<0>\n<1> Skipped Voting (<2> )",
             renderedVotes,
-            votesByPlayer[i], SafePlayerName(players[i]), votersByPlayer[i]
+            nobodyVotes, nobodyVoters
         >;
     }
-    renderedVotes = <"<0>\n<1> Skipped Voting (<2> )",
-        renderedVotes,
-        nobodyVotes, nobodyVoters
-    >;
 
     playerToEject = isTie ? "Nobody" : (nobodyVotes >= maxVotes ? "Nobody" : maxVotesPlayer);
     renderedVotes = <"<0>\n\nEjecting <1>",
@@ -103,6 +108,7 @@ rule: "Global: State Voting"
 if (gameState == GameState.Voting)
 if (!votingStarted)
 {
+    DestroyAllHudText();
     AllPlayers().canKill = false;
     AllPlayers().canReportCorpse = false;
     AllPlayers().canTask = false;
@@ -111,7 +117,6 @@ if (!votingStarted)
     AllPlayers().renderedVotingMenu = "";
     AllPlayers().voted = false;
     AllPlayers().votingMenuSelected = 0;
-    SetMoveSpeed(AllPlayers(), 0.0);
     recordedVotes = EmptyArray();
     renderedVotes = "";
     renderedVoting = "";
@@ -124,7 +129,7 @@ if (!votingStarted)
     }
     ModifyVariable(votingOptions, Operation.AppendToArray, new VoteButton("Skip Vote", "Nobody"));
     ModifyVariable(votingOptions, Operation.AppendToArray, new MenuText("\nDead:\n"));
-    foreach (define deadPlayer in AllDeadPlayers()) {
+    foreach (define deadPlayer in AllGhosts()) {
         ModifyVariable(votingOptions, Operation.AppendToArray,
             new MenuText(<"<0>", IsDummyBot(deadPlayer) ? HeroOf(deadPlayer) : deadPlayer>)
         );
@@ -141,7 +146,7 @@ if (!votingStarted)
         Header: RoundToInteger(votingTimer, Rounding.Up),
         HeaderColor: Color.White,
         Location: Location.Right,
-        SortOrder: 2,
+        SortOrder: 0,
         Spectators: Spectators.VisibleNever,
         Reevaluation: HudTextRev.String
     );
@@ -152,8 +157,6 @@ Event.OngoingPlayer
 if (gameState == GameState.Voting)
 if (votingStarted)
 {
-    DestroyAllHudText();
-    Wait(0.5);
     RenderVotingOptions(EventPlayer());
     putPlayerInCircle(EventPlayer());
 
@@ -215,7 +218,7 @@ Event.OngoingPlayer
 if (gameState == GameState.Voting)
 if (votingStarted)
 if (IsDummyBot(EventPlayer()))
-if (IsAlive(EventPlayer()))
+if (EventPlayer().isAlive)
 if (!EventPlayer().voted)
 {
     EventPlayer().voted = true;
