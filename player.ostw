@@ -42,8 +42,17 @@ Event.OnPlayerJoin
     SetSecondaryFireEnabled(EventPlayer(), false);
     SetJumpEnabled(EventPlayer(), false);
 
-    CreateHudText(EventPlayer(), Subheader: <"(X: <0>, Y: <1>, Z: <2>)", XOf(PositionOf(EventPlayer())), YOf(PositionOf(EventPlayer())), ZOf(PositionOf(EventPlayer()))>);
     ChaseVariableAtRate(EventPlayer().killCooldown, 0, 1.0, RateChaseReevaluation.None);
+}
+
+define respawnLocation: Vector(-199.46, 1.01, -7.59);
+
+rule: "Player: On Death"
+Event.OnDeath
+{
+    Wait(5);
+    Resurrect(EventPlayer());
+    Teleport(EventPlayer(), respawnLocation);
 }
 
 /* Puts an orb in the center of the map.
@@ -88,21 +97,21 @@ void assignTasks(ref define player, ref define numTasks) {
 /* Update the hud task strings.
  */
 void updateHudStrings(ref define player) {
-    player.hudTaskString = <"<0><1><2><3><4><5>",
-        player.incompleteTasks.Length > 0 ? <"1. <0>\n", player.incompleteTasks[0].Name> : "",
-        player.incompleteTasks.Length > 1 ? <"2. <0>\n", player.incompleteTasks[1].Name> : "",
-        player.incompleteTasks.Length > 2 ? <"3. <0>\n", player.incompleteTasks[2].Name> : "",
-        player.incompleteTasks.Length > 3 ? <"4. <0>\n", player.incompleteTasks[3].Name> : "",
-        player.incompleteTasks.Length > 4 ? <"5. <0>\n", player.incompleteTasks[4].Name> : "",
-        player.incompleteTasks.Length > 5 ? <"6. <0>\n", player.incompleteTasks[5].Name> : ""
+    player.hudTaskString = <"TODO:<0><1><2><3><4><5>",
+        player.incompleteTasks.Length > 0 ? <"\n▷ <0>", player.incompleteTasks[0].Name> : "",
+        player.incompleteTasks.Length > 1 ? <"\n▷ <0>", player.incompleteTasks[1].Name> : "",
+        player.incompleteTasks.Length > 2 ? <"\n▷ <0>", player.incompleteTasks[2].Name> : "",
+        player.incompleteTasks.Length > 3 ? <"\n▷ <0>", player.incompleteTasks[3].Name> : "",
+        player.incompleteTasks.Length > 4 ? <"\n▷ <0>", player.incompleteTasks[4].Name> : "",
+        player.incompleteTasks.Length > 5 ? <"\n▷ <0>", player.incompleteTasks[5].Name> : ""
     >;
-    player.hudCompleteTaskString = <"<0><1><2><3><4><5>",
-        player.completeTasks.Length > 0 ? <"1. <0>\n", player.completeTasks[0].Name> : "",
-        player.completeTasks.Length > 1 ? <"2. <0>\n", player.completeTasks[1].Name> : "",
-        player.completeTasks.Length > 2 ? <"3. <0>\n", player.completeTasks[2].Name> : "",
-        player.completeTasks.Length > 3 ? <"4. <0>\n", player.completeTasks[3].Name> : "",
-        player.completeTasks.Length > 4 ? <"5. <0>\n", player.completeTasks[4].Name> : "",
-        player.completeTasks.Length > 5 ? <"6. <0>\n", player.completeTasks[5].Name> : ""
+    player.hudCompleteTaskString = <"Done:<0><1><2><3><4><5>",
+        player.completeTasks.Length > 0 ? <"\n▶ <0>", player.completeTasks[0].Name> : "",
+        player.completeTasks.Length > 1 ? <"\n▶ <0>", player.completeTasks[1].Name> : "",
+        player.completeTasks.Length > 2 ? <"\n▶ <0>", player.completeTasks[2].Name> : "",
+        player.completeTasks.Length > 3 ? <"\n▶ <0>", player.completeTasks[3].Name> : "",
+        player.completeTasks.Length > 4 ? <"\n▶ <0>", player.completeTasks[4].Name> : "",
+        player.completeTasks.Length > 5 ? <"\n▶ <0>", player.completeTasks[5].Name> : ""
     >;
 }
 

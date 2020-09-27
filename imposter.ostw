@@ -4,12 +4,22 @@ import "main.ostw";
 playervar define closestCrew;
 playervar define canKill = false;
 playervar define killCooldown = 0;
-playervar define killCount = 0;
+playervar define canVent = false;
+playervar define venting = false;
+playervar define originalHero;
 
 /* Per-tick state update for imposters.
  */
 void imposterUpdate(ref define player) {
-    findImposterNearestCrew(player);
+    player.hudInteractString = "";
+    player.canVent = isVentNearby(player);
+    if (player.canVent) {
+        player.hudInteractString = "Vent";
+    }
+
+    if (!player.venting) {
+        findImposterNearestCrew(player);
+    }
 }
 
 /* Find the nearest crew member, and determine if they are killable.
@@ -20,7 +30,7 @@ void findImposterNearestCrew(ref define player) {
     // Find first incomplete task within 3 meters
     foreach (define crew in FilteredArray(AllLivingPlayers(), ArrayElement().role == PlayerRole.CREW)) {
         define distance = DistanceBetween(PositionOf(player), PositionOf(crew));
-        if (distance <= closestCrewDistance) {
+        if (distance < closestCrewDistance) {
             _closestCrew = crew;
             closestCrewDistance = distance;
         }
@@ -31,13 +41,19 @@ void findImposterNearestCrew(ref define player) {
         player.canKill = true;
         if (player.killCooldown == 0) {
             player.hudInteractString = <"Kill <0> <1>", HeroIconString(HeroOf(closestCrew)), SafePlayerName(closestCrew)>;
-        } else {
-            player.hudInteractString = "";
         }
     } else {
         player.canKill = false;
-        player.hudInteractString = "";
     }
+}
+
+define isVentNearby(ref define player) {
+    foreach (Vector v in global_vents) {
+        if (DistanceBetween(PositionOf(player), v) <= 1.0) {
+            return true;
+        }
+    }
+    return false;
 }
 
 /* If target player is alive, kill them and return true.
@@ -61,6 +77,49 @@ define killPlayer(define target) "Kill Player" {
     }
 }
 
+rule: "Player: Imposter Interact (Vent)"
+Event.OngoingPlayer
+if (gameState == GameState.Play)
+if (playing)
+if (EventPlayer().role == PlayerRole.IMPOSTER)
+if (IsButtonHeld(EventPlayer(), Button.Interact))
+if (EventPlayer().canVent)
+{
+    EventPlayer().canKill = false;
+    EventPlayer().canVent = false;
+    EventPlayer().venting = !EventPlayer().venting;
+    Wait(0.5);
+}
+
+rule: "Player: Imposter Venting"
+Event.OngoingPlayer
+if (gameState == GameState.Play)
+if (playing)
+if (EventPlayer().role == PlayerRole.IMPOSTER)
+if (EventPlayer().venting)
+{
+    SetInvisible(EventPlayer(), InvisibleTo.All);
+    EventPlayer().originalHero = HeroOf(EventPlayer());
+    ForcePlayerHero(EventPlayer(), Hero.Zenyatta);
+    SetMoveSpeed(EventPlayer(), 400);
+    DisableMovementCollisionWithPlayers(EventPlayer());
+    Wait(0.5);
+}
+
+rule: "Player: Imposter UnVenting"
+Event.OngoingPlayer
+if (gameState == GameState.Play)
+if (playing)
+if (EventPlayer().role == PlayerRole.IMPOSTER)
+if (!EventPlayer().venting)
+{
+    ForcePlayerHero(EventPlayer(), EventPlayer().originalHero);
+    EnableMovementCollisionWithPlayers(EventPlayer());
+    SetMoveSpeed(EventPlayer(), 100);
+    SetInvisible(EventPlayer(), InvisibleTo.None);
+}
+
+
 rule: "Player: Imposter Interact (Kill)"
 Event.OngoingPlayer
 if (gameState == GameState.Play)
@@ -68,10 +127,11 @@ if (playing)
 if (EventPlayer().role == PlayerRole.IMPOSTER)
 if (IsButtonHeld(EventPlayer(), Button.Interact))
 if (EventPlayer().canKill)
+if (!EventPlayer().venting)
 if (EventPlayer().killCooldown == 0)
 {
+    EventPlayer().canVent = false;
     if (killPlayer(EventPlayer().closestCrew)) {
-        EventPlayer().killCount += 1;
         EventPlayer().canKill = false;
         EventPlayer().killCooldown = KillCooldown.Value;
         checkEndGame();
@@ -85,6 +145,9 @@ if (playing)
 if (EventPlayer().role == PlayerRole.IMPOSTER)
 {
     EventPlayer().killCooldown = KillCooldown.Value;
+    EventPlayer().canKill = false;
+    EventPlayer().canVent = false;
+    EventPlayer().venting = false;
     while (gameState == GameState.Play) {
         playerUpdate(EventPlayer());
         imposterUpdate(EventPlayer());

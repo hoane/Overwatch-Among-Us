@@ -9,6 +9,7 @@ import "corpse.ostw";
 import "imposter.ostw";
 import "crewmate.ostw";
 import "voting.ostw";
+import "vents.ostw";
 
 enum GameState {
     Waiting,
@@ -44,6 +45,7 @@ if (gameState == GameState.Start)
     playing = true;
     markCenter();
     drawTasks();
+    drawVents();
     Wait(1);
     gameState = GameState.Play;
 }
@@ -96,6 +98,7 @@ void reset() "Reset Game" {
     AllPlayers().incompleteTasks = EmptyArray();
     AllPlayers().completeTasks = EmptyArray();
     AllPlayers().canKill = false;
+    AllPlayers().canVent = false;
     AllPlayers().canReportCorpse = false;
     AllPlayers().isTaskInProgress = false;
     corpses = EmptyArray();

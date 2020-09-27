@@ -50,6 +50,18 @@ void drawGlobalHUD() {
         Reevaluation: HudTextRev.None,
         SortOrder   : 2
     );
+
+    CreateHudText(
+        VisibleTo   : FilteredArray(AllPlayers(), ArrayElement().venting == true),
+        Header      : "VENTING",
+        HeaderColor : Color.Purple,
+        Text        : "You are invisible, but cannot kill.\nUn-vent to regain corporeal form.",
+        TextColor   : Color.White,
+        Location    : Location.Top,
+        Spectators  : Spectators.VisibleNever,
+        Reevaluation: HudTextRev.VisibleTo,
+        SortOrder   : 4
+    );
 }
 
 void drawPlayerHUD(ref define player) {
@@ -59,22 +71,12 @@ void drawPlayerHUD(ref define player) {
         TextColor   : Color.White,
         Header      : "Tasks",
         HeaderColor : Color.White,
+        Subheader   : player.hudCompleteTaskString,
+        SubheaderColor: Color.Green,
         Location    : Location.Left,
         Spectators  : Spectators.VisibleNever,
         Reevaluation: HudTextRev.String,
         SortOrder   : 2
-    );
-
-    CreateHudText(
-        VisibleTo   : player,
-        Text        : player.hudCompleteTaskString,
-        TextColor   : Color.Green,
-        Header      : "Done",
-        HeaderColor : Color.Green,
-        Location    : Location.Left,
-        Spectators  : Spectators.VisibleNever,
-        Reevaluation: HudTextRev.String,
-        SortOrder   : 3
     );
 
     CreateHudText(
