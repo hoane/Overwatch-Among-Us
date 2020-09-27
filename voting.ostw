@@ -12,6 +12,17 @@ playervar define renderedVotingMenu = "";
 playervar define votingMenuSelected = 0;
 playervar define voted = false;
 
+define secretLocation: Vector(-143, -3, -100);
+
+void StartVotingRound() "Voting: Start Voting" {
+    ForceThrottle(AllPlayers(), 0, 0, 0, 0, 0, 0);
+    Teleport(FilteredArray(AllPlayers(), ArrayElement().venting), secretLocation);
+    AllPlayers().venting = false;
+    Wait(1);
+    votingStarted = false;
+    gameState = GameState.Voting;
+}
+
 void RenderVotingOptions(define player) "Voting Menu: Render Options"
 if (gameState == GameState.Voting)
 {

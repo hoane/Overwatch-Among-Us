@@ -117,6 +117,7 @@ if (!EventPlayer().venting)
     EnableMovementCollisionWithPlayers(EventPlayer());
     SetMoveSpeed(EventPlayer(), 100);
     SetInvisible(EventPlayer(), InvisibleTo.None);
+    Wait(0.5);
 }
 
 

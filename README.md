@@ -22,6 +22,8 @@ Follow the instructions at https://github.com/ItsDeltin/Overwatch-Script-To-Work
   - [x] Venting
     - [x] Enter/Exit Vent
     - [ ] Unravel venting on state transitions, e.g. voting
+      - [x] voting secretly unravels venting
+      - [ ] game end
   - [ ] Sabotage
 - [ ] Player
   - [x] Report Corpse

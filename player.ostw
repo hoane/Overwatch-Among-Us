@@ -41,6 +41,7 @@ Event.OnPlayerJoin
     SetPrimaryFireEnabled(EventPlayer(), false);
     SetSecondaryFireEnabled(EventPlayer(), false);
     SetJumpEnabled(EventPlayer(), false);
+    SetDamageReceived(EventPlayer(), 0);
 
     ChaseVariableAtRate(EventPlayer().killCooldown, 0, 1.0, RateChaseReevaluation.None);
 }
@@ -227,6 +228,5 @@ if (EventPlayer().canReportCorpse)
     ModifyVariable(corpses, Operation.RemoveFromArrayByValue, corpse);
     DestroyEffect(corpse.Entity);
 
-    votingStarted = false;
-    gameState = GameState.Voting;
+    StartVotingRound();
 }
