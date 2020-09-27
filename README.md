@@ -5,12 +5,18 @@ Follow the instructions at https://github.com/ItsDeltin/Overwatch-Script-To-Work
 
 # Features
 
+- [ ] Game States
+  - [x] Setup
+  - [x] Play
+  - [x] Voting
+    - [x] Players brought to voting area
+    - [x] Most votes is ejected
 - [ ] Crewmate
   - [x] tasks
   - [ ] Special Rooms
     - [ ] Security Camera
     - [ ] Bio Signs
-- [x] Imposter
+- [ ] Imposter
   - [x] Kill crewmate
   - [x] Kill cooldown
   - [x] Venting
@@ -19,6 +25,7 @@ Follow the instructions at https://github.com/ItsDeltin/Overwatch-Script-To-Work
   - [ ] Sabotage
 - [ ] Player
   - [x] Report Corpse
+  - [ ] Emergency Meeting
 - [ ] Ghost
   - [ ] Players should go into a special Ghost state when killed instead of actually dying
   - [ ] Ghost tasks
