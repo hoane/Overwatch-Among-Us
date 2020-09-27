@@ -8,6 +8,7 @@ import "lobby.ostw";
 import "corpse.ostw";
 import "imposter.ostw";
 import "crewmate.ostw";
+import "voting.ostw";
 
 enum GameState {
     Waiting,
@@ -51,21 +52,24 @@ rule: "Player: State Start"
 Event.OngoingPlayer
 if (gameState == GameState.Start)
 {
+    if (EventPlayer().role == PlayerRole.IMPOSTER) {
+        CreateEffect(
+            VisibleTo: FilteredArray(AllLivingPlayers(), ArrayElement().role == PlayerRole.IMPOSTER && ArrayElement() != EventPlayer()),
+            Type: Effect.BadAura,
+            Color: Color.Red,
+            Radius: 1,
+            Reevaluation: EffectRev.VisibleToPositionAndRadius,
+            Position: PositionOf(EventPlayer())
+        );
+    }
     putPlayerInCircle(EventPlayer());
-
-    CreateInWorldText(
-        AllPlayers(),
-        EventPlayer().role == PlayerRole.CREW ? "CREW" : "IMPOSTER", PositionOf(EventPlayer()), 4, Clipping.ClipAgainstSurfaces,
-        InworldTextRev.VisibleToPositionAndString,
-        Color.White
-    );
-
     assignTasks(EventPlayer(), NumTasks.Value);
 }
 
 rule: "Global: Start Play"
 if (gameState == GameState.Play)
 {
+    checkEndGame();
     drawGlobalHUD();
 }
 

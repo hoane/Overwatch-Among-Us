@@ -30,7 +30,7 @@ void findImposterNearestCrew(ref define player) {
         player.closestCrew = _closestCrew;
         player.canKill = true;
         if (player.killCooldown == 0) {
-            player.hudInteractString = <"Kill <0>", HeroIconString(HeroOf(closestCrew))>;
+            player.hudInteractString = <"Kill <0> <1>", HeroIconString(HeroOf(closestCrew)), SafePlayerName(closestCrew)>;
         } else {
             player.hudInteractString = "";
         }
@@ -84,6 +84,7 @@ if (gameState == GameState.Play)
 if (playing)
 if (EventPlayer().role == PlayerRole.IMPOSTER)
 {
+    EventPlayer().killCooldown = KillCooldown.Value;
     while (gameState == GameState.Play) {
         playerUpdate(EventPlayer());
         imposterUpdate(EventPlayer());

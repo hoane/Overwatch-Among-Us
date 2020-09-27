@@ -1,3 +1,5 @@
 import "main.ostw";
 
 define ChooseArray(define array, define n): ArraySlice(RandomizedArray(array), 0, n);
+
+define SafePlayerName(define player): IsDummyBot(player) ? HeroOf(player) : player;

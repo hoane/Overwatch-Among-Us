@@ -1,6 +1,7 @@
+import "main.ostw";
 void spawnBots(ref define botsToCreate) {
+    define botHeros = ChooseArray(AllowedHeroes(HostPlayer()), botsToCreate)
     for (define i = 0; i < botsToCreate; i++) {
-        CreateDummyBot(AllHeroes(), Team.All, -1, Vector(-190, 1 + i * 2, -30));
-        LastCreatedEntity()
+        CreateDummyBot(botHeros[i], Team.All, -1, Vector(-190, 1 + i * 2, -30));
     }
 }

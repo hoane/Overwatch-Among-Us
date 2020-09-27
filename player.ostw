@@ -41,7 +41,7 @@ Event.OnPlayerJoin
     SetPrimaryFireEnabled(EventPlayer(), false);
     SetSecondaryFireEnabled(EventPlayer(), false);
     //SetDamageReceived(EventPlayer(), 0);
-    //SetJumpEnabled(EventPlayer(), false);
+    SetJumpEnabled(EventPlayer(), false);
     //SetMoveSpeed(EventPlayer(), 300);
 
     CreateHudText(EventPlayer(), Subheader: <"(X: <0>, Y: <1>, Z: <2>)", XOf(PositionOf(EventPlayer())), YOf(PositionOf(EventPlayer())), ZOf(PositionOf(EventPlayer()))>);
@@ -219,4 +219,7 @@ if (EventPlayer().canReportCorpse)
     );
     ModifyVariable(corpses, Operation.RemoveFromArrayByValue, corpse);
     DestroyEffect(corpse.Entity);
+
+    votingStarted = false;
+    gameState = GameState.Voting;
 }

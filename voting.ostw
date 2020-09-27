@@ -1,0 +1,287 @@
+import "main.ostw";
+
+globalvar VoteMenuOption[] votingOptions;
+globalvar define[] recordedVotes;
+globalvar define renderedVotes = "";
+globalvar define renderedVoting = "";
+globalvar define votingStarted = false;
+globalvar define votingTimer = 0;
+globalvar define playerToEject;
+
+playervar define renderedVotingMenu = "";
+playervar define votingMenuSelected = 0;
+playervar define voted = false;
+
+void RenderVotingOptions(define player) "Voting Menu: Render Options"
+if (gameState == GameState.Voting)
+{
+    player.renderedVotingMenu = "";
+    for (define i = 0; i < votingOptions.Length; i++) {
+        player.renderedVotingMenu = <"<0><1><2>",
+            player.renderedVotingMenu,
+            votingOptions[i].RenderedLine(i == player.votingMenuSelected),
+            i < votingOptions.Length - 1 ? "\n" : ""
+        >;
+    }
+}
+
+void RenderVoting() "Voting Menu: Render Voting" {
+    renderedVoting = <"Voting: <0> Total", recordedVotes.Length / 2>;
+    for (define i = 0; i < recordedVotes.Length; i += 2) {
+        renderedVoting = <"<0>\n<1> Voted",
+            renderedVoting,
+            IsDummyBot(recordedVotes[i]) ? HeroOf(recordedVotes[i]) : recordedVotes[i]
+        >;
+    }
+}
+
+void RenderVotes() "Voting Menu: Render Votes" {
+    renderedVotes = <"Votes: <0> Total", recordedVotes.Length / 2>;
+    define[] players = AllLivingPlayers();
+    define[] votesByPlayer = EmptyArray();
+    define[] votersByPlayer = EmptyArray();
+    foreach (define p in players) {
+        ModifyVariable(votesByPlayer, Operation.AppendToArray, 0);
+        ModifyVariable(votersByPlayer, Operation.AppendToArray, "");
+    }
+    define nobodyVotes = 0;
+    define nobodyVoters = "";
+
+
+    for (define i = 0; i < recordedVotes.Length; i += 2) {
+        define k = IndexOfArrayValue(players, recordedVotes[i + 1]);
+        if (k >= 0) {
+            votesByPlayer[k] += 1;
+            votersByPlayer[k] = <"<0> <1>", votersByPlayer[k], SafePlayerName(recordedVotes[i])>;
+        } else {
+            nobodyVotes++;
+            nobodyVoters = <"<0>, <1>", nobodyVoters, SafePlayerName(recordedVotes[i])>
+        }
+    }
+
+    define maxVotes = 0;
+    define isTie = true;
+    define maxVotesPlayer = "Nobody";
+    for (define i = 0; i < players.Length; i += 1) {
+        if (votesByPlayer[i] == maxVotes) {
+            isTie = true;
+        }
+        if (votesByPlayer[i] > maxVotes) {
+            maxVotes = votesByPlayer[i];
+            maxVotesPlayer = players[i];
+            isTie = false;
+        }
+        renderedVotes = <"<0>\n<1> Votes For <2> (<3> )",
+            renderedVotes,
+            votesByPlayer[i], SafePlayerName(players[i]), votersByPlayer[i]
+        >;
+    }
+    renderedVotes = <"<0>\n<1> Skipped Voting (<2> )",
+        renderedVotes,
+        nobodyVotes, nobodyVoters
+    >;
+
+    playerToEject = isTie ? "Nobody" : (nobodyVotes >= maxVotes ? "Nobody" : maxVotesPlayer);
+    renderedVotes = <"<0>\n\nEjecting <1>",
+        renderedVotes,
+        SafePlayerName(playerToEject)
+    >;
+}
+
+rule: "Global: State Voting"
+if (gameState == GameState.Voting)
+if (!votingStarted)
+{
+    AllPlayers().canKill = false;
+    AllPlayers().canReportCorpse = false;
+    AllPlayers().canTask = false;
+    AllPlayers().hudInteractString = "";
+    AllPlayers().hudReloadString = "";
+    AllPlayers().renderedVotingMenu = "";
+    AllPlayers().voted = false;
+    AllPlayers().votingMenuSelected = 0;
+    SetMoveSpeed(AllPlayers(), 0.0);
+    recordedVotes = EmptyArray();
+    renderedVotes = "";
+    renderedVoting = "";
+
+    votingOptions = [new MenuText("Select a Player to Kill")];
+    foreach (define player in AllLivingPlayers()) {
+        ModifyVariable(votingOptions, Operation.AppendToArray,
+            new VoteButton(<"<0>", IsDummyBot(player) ? HeroOf(player) : player>, player)
+        );
+    }
+    ModifyVariable(votingOptions, Operation.AppendToArray, new VoteButton("Skip Vote", "Nobody"));
+    ModifyVariable(votingOptions, Operation.AppendToArray, new MenuText("\nDead:\n"));
+    foreach (define deadPlayer in AllDeadPlayers()) {
+        ModifyVariable(votingOptions, Operation.AppendToArray,
+            new MenuText(<"<0>", IsDummyBot(deadPlayer) ? HeroOf(deadPlayer) : deadPlayer>)
+        );
+    }
+
+    Wait(0.5);
+    StopChasingVariable(votingTimer);
+    votingTimer = VotingTime.Value;
+    ChaseVariableAtRate(votingTimer, 0, 1, RateChaseReevaluation.None);
+    votingStarted = true;
+
+    CreateHudText(
+        VisibleTo: AllPlayers(),
+        Header: RoundToInteger(votingTimer, Rounding.Up),
+        HeaderColor: Color.White,
+        Location: Location.Right,
+        SortOrder: 2,
+        Spectators: Spectators.VisibleNever,
+        Reevaluation: HudTextRev.String
+    );
+}
+
+rule: "Player: State Voting"
+Event.OngoingPlayer
+if (gameState == GameState.Voting)
+if (votingStarted)
+{
+    DestroyAllHudText();
+    Wait(0.5);
+    RenderVotingOptions(EventPlayer());
+    putPlayerInCircle(EventPlayer());
+
+    CreateHudText(
+        VisibleTo: EventPlayer(),
+        Header: EventPlayer().renderedVotingMenu,
+        HeaderColor: Color.White,
+        Text: renderedVoting,
+        TextColor: Color.Blue,
+        Location: Location.Top,
+        SortOrder: 2,
+        Spectators: Spectators.VisibleNever,
+        Reevaluation: HudTextRev.String
+    );
+
+    CreateHudText(
+        VisibleTo: EventPlayer(),
+        Text: votingOptions[EventPlayer().votingMenuSelected].Controls,
+        TextColor: Color.White,
+        Location: Location.Top,
+        SortOrder: 2,
+        Spectators: Spectators.VisibleNever,
+        Reevaluation: HudTextRev.String
+    );
+}
+
+rule: "Global: Voting: Votes Complete"
+if (gameState == GameState.Voting)
+if (votingStarted)
+if (recordedVotes.Length == CountOf(AllLivingPlayers()) * 2)
+{
+    Wait(1);
+    DestroyAllHudText();
+    Wait(0.5);
+
+    RenderVotes();
+
+    CreateHudText(
+        VisibleTo: AllPlayers(),
+        Header: renderedVotes,
+        HeaderColor: Color.White,
+        Location: Location.Top,
+        SortOrder: 2,
+        Spectators: Spectators.VisibleNever,
+        Reevaluation: HudTextRev.String
+    );
+
+    Wait(5);
+    Kill(playerToEject);
+    Wait(5);
+    DestroyAllHudText();
+    Wait(0.5);
+
+    gameState = GameState.Play;
+}
+
+rule: "Bot Player: Voting"
+Event.OngoingPlayer
+if (gameState == GameState.Voting)
+if (votingStarted)
+if (IsDummyBot(EventPlayer()))
+if (IsAlive(EventPlayer()))
+if (!EventPlayer().voted)
+{
+    EventPlayer().voted = true;
+    Wait(RandomReal(3.0, 6.0));
+    ModifyVariable(recordedVotes, Operation.AppendToArray,
+        [EventPlayer(), RandomValueInArray(AllLivingPlayers())]
+    );
+    RenderVoting();
+}
+
+rule: "Voting Menu: Previous Option"
+Event.OngoingPlayer
+if (gameState == GameState.Voting)
+if (votingStarted)
+if (!EventPlayer().voted)
+if (ThrottleOf(EventPlayer()).Z > 0)
+{
+    EventPlayer().votingMenuSelected--;
+    if (EventPlayer().votingMenuSelected < 0) EventPlayer().votingMenuSelected = votingOptions.Length - 1;
+    RenderVotingOptions(EventPlayer());
+}
+
+rule: "Voting Menu: Next Option"
+Event.OngoingPlayer
+if (gameState == GameState.Voting)
+if (votingStarted)
+if (!EventPlayer().voted)
+if (ThrottleOf(EventPlayer()).Z < 0)
+{
+    EventPlayer().votingMenuSelected++;
+    if (EventPlayer().votingMenuSelected > votingOptions.Length) EventPlayer().votingMenuSelected = 0;
+    RenderVotingOptions(EventPlayer());
+}
+
+rule: "Voting Menu: Press"
+Event.OngoingPlayer
+if (gameState == GameState.Voting)
+if (votingStarted)
+if (!EventPlayer().voted)
+if (IsButtonHeld(EventPlayer(), Button.Interact))
+{
+    votingOptions[EventPlayer().votingMenuSelected].OnSelect();
+}
+
+class VoteMenuOption {
+    public define Name;
+    public define Value;
+    public virtual define RenderedLine(define selected): "";
+    public virtual define Controls: "";
+    public virtual void OnSelect() {}
+}
+
+class MenuText : VoteMenuOption {
+    public MenuText(ref define name) {
+        Name = name;
+    }
+
+    public override define RenderedLine(define selected): Name;
+}
+
+class VoteButton : VoteMenuOption {
+    public override define Controls: <"Press <0> to vote.", InputBindingString(ButtonValue(Button.Interact))>;
+
+    public ActionButton(ref define name, ref define value)
+    {
+        Name = name;
+        Value = value;
+    }
+
+    public override define RenderedLine(define selected): <"<1><0>", Name, selected ? "▶" : "▷">;
+
+    public override void OnSelect()
+    {
+        EventPlayer().voted = true;
+        ModifyVariable(root.recordedVotes, Operation.AppendToArray,
+            [EventPlayer(), Value]
+        );
+        root.RenderVoting();
+    }
+}
