@@ -9,6 +9,37 @@ playervar Task interactableTask;
 playervar define isTaskInProgress = false;
 playervar define taskProgressTime;
 
+/* Per-tick update logic for crew.
+ */
+void crewUpdate(ref define player) {
+    if (player.isTaskInProgress) {
+        updateCrewTaskProgress(player);
+    } else {
+        findCrewNearestTask(player);
+    }
+}
+
+/* Check if task progress may continue or if it should cancel or complete.
+ */
+void updateCrewTaskProgress(ref define player) {
+    // Still near enough to task to work on it, and holding the button?
+    if (!IsButtonHeld(player, Button.Interact) || DistanceBetween(PositionOf(player), player.interactableTask.Position) > 3) {
+        player.isTaskInProgress = false;
+        StopChasingVariable(player.taskProgressTime);
+        return;
+    }
+    // If task done, move it to the complete list
+    if (player.taskProgressTime >= player.interactableTask.Duration) {
+        player.isTaskInProgress = false;
+        StopChasingVariable(player.taskProgressTime);
+        ModifyVariable(player.completeTasks, Operation.AppendToArray, player.interactableTask);
+        ModifyVariable(player.incompleteTasks, Operation.RemoveFromArrayByValue, player.interactableTask);
+        totalCompleteTaskCount++;
+        updateHudStrings(player);
+        checkEndGame();
+    }
+}
+
 rule: "Player: Crew Interact (Task)"
 Event.OngoingPlayer
 if (gameState == GameState.Play)
@@ -21,6 +52,20 @@ if (EventPlayer().canTask)
     EventPlayer().isTaskInProgress = true;
     EventPlayer().taskProgressTime = 0;
     ChaseVariableAtRate(EventPlayer().taskProgressTime, EventPlayer().interactableTask.Duration, 1.0, RateChaseReevaluation.None);
+}
+
+rule: "Player: DummyBot Crew Task Completion"
+Event.OngoingPlayer
+if (gameState == GameState.Play)
+if (playing)
+if (EventPlayer().role == PlayerRole.CREW)
+if (IsDummyBot(EventPlayer()))
+{
+    while (gameState == GameState.Play) {
+        Wait(RandomInteger(15, 20), WaitBehavior.AbortWhenFalse);
+        totalCompleteTaskCount++;
+        checkEndGame();
+    }
 }
 
 rule: "Player: Crew Update Loop"

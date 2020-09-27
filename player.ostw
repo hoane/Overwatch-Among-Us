@@ -116,17 +116,6 @@ void updateHudStrings(ref define player) {
     >;
 }
 
-/* Per-tick update logic for crew.
- */
-void crewUpdate(ref define player) {
-    if (player.isTaskInProgress) {
-        updateCrewTaskProgress(player);
-    } else {
-        findCrewNearestTask(player);
-    }
-
-}
-
 /* Debug-only update logic.
  */
 void debugUpdate(ref define player) {
@@ -136,27 +125,6 @@ void debugUpdate(ref define player) {
     }
     if (IsButtonHeld(player, Button.Ability1)) {
         killPlayer(RandomValueInArray(AllAlive()));
-    }
-}
-
-/* Check if task progress may continue or if it should cancel or complete.
- */
-void updateCrewTaskProgress(ref define player) {
-    // Still near enough to task to work on it, and holding the button?
-    if (!IsButtonHeld(player, Button.Interact) || DistanceBetween(PositionOf(player), player.interactableTask.Position) > 3) {
-        player.isTaskInProgress = false;
-        StopChasingVariable(player.taskProgressTime);
-        return;
-    }
-    // If task done, move it to the complete list
-    if (player.taskProgressTime >= player.interactableTask.Duration) {
-        player.isTaskInProgress = false;
-        StopChasingVariable(player.taskProgressTime);
-        ModifyVariable(player.completeTasks, Operation.AppendToArray, player.interactableTask);
-        ModifyVariable(player.incompleteTasks, Operation.RemoveFromArrayByValue, player.interactableTask);
-        totalCompleteTaskCount++;
-        updateHudStrings(player);
-        checkEndGame();
     }
 }
 
