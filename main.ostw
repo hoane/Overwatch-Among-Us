@@ -85,7 +85,8 @@ if (gameState == GameState.Play) {
     updateHudStrings(EventPlayer());
     resetSabotage();
 
-    SetMoveSpeed(AllPlayers(), MoveSpeed.Value);
+    SetMoveSpeed(FilteredArray(AllPlayers(), ArrayElement().isAlive), MoveSpeed.Value);
+    SetMoveSpeed(FilteredArray(AllPlayers(), !ArrayElement().isAlive), 2 * MoveSpeed.Value);
     StopForcingThrottle(AllPlayers());
 }
 
@@ -108,6 +109,7 @@ void reset() "Reset Game" {
     AllPlayers().isTaskInProgress = false;
     AllPlayers().isVenting = false;
     AllPlayers().hasCorpse = false;
+    AllPlayers().hasButtonPress = true;
     totalTaskCount = 0;
     totalCompleteTaskCount = 0;
 

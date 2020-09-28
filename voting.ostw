@@ -251,7 +251,7 @@ if (!EventPlayer().voted)
 if (ThrottleOf(EventPlayer()).Z > 0)
 {
     EventPlayer().votingMenuSelected--;
-    if (EventPlayer().votingMenuSelected < 0) EventPlayer().votingMenuSelected = votingOptions.Length - 1;
+    if (EventPlayer().votingMenuSelected < 1) EventPlayer().votingMenuSelected = votingOptions.Length - 1;
     RenderVotingOptions(EventPlayer());
 }
 
@@ -271,6 +271,7 @@ rule: "Voting Menu: Press"
 Event.OngoingPlayer
 if (gameState == GameState.Voting)
 if (votingStarted)
+if (EventPlayer().isAlive)
 if (!EventPlayer().voted)
 if (IsButtonHeld(EventPlayer(), Button.Interact))
 if (!forbidVoting)

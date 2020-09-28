@@ -14,8 +14,6 @@ playervar define releasedUlt;
 globalvar define canSabotage;
 globalvar define sabotageCooldown;
 
-define KILL_DISTANCE: 5;
-
 /* Per-tick state update for imposters.
  */
 void imposterUpdate(ref define player) {
@@ -35,7 +33,7 @@ void imposterUpdate(ref define player) {
 void findImposterNearestCrew(ref define player) {
     player.closestCrew = RayCastHitPlayer(
         StartPOS: EyePosition(player),
-        EndPOS: EyePosition(EventPlayer()) + KILL_DISTANCE * FacingDirectionOf(player),
+        EndPOS: EyePosition(EventPlayer()) + KillDistance.Value * FacingDirectionOf(player),
         PlayersToInclude: AllAliveCrew(),
         PlayersToExclude: player
     );
@@ -119,7 +117,7 @@ if (EventPlayer().isVenting)
     SetInvisible(EventPlayer(), InvisibleTo.All);
     EventPlayer().originalHero = HeroOf(EventPlayer());
     ForcePlayerHero(EventPlayer(), Hero.Zenyatta);
-    SetMoveSpeed(EventPlayer(), 3 * MoveSpeed.Value);
+    SetMoveSpeed(EventPlayer(), 2 * MoveSpeed.Value);
     DisableMovementCollisionWithPlayers(EventPlayer());
 }
 
@@ -159,7 +157,7 @@ if (EventPlayer().killCooldown == 0)
     
     define killTarget = RayCastHitPlayer(
         StartPOS: EyePosition(EventPlayer()),
-        EndPOS: EyePosition(EventPlayer()) + KILL_DISTANCE * FacingDirectionOf(EventPlayer()),
+        EndPOS: EyePosition(EventPlayer()) + KillDistance.Value * FacingDirectionOf(EventPlayer()),
         PlayersToInclude: AllAliveCrew(),
         PlayersToExclude: EventPlayer()
     );

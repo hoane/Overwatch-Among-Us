@@ -20,6 +20,7 @@ playervar define hasCorpse = false;
 playervar define canReportCorpse = false;
 playervar define originalHero;
 playervar define closestSabotage;
+playervar define hasButtonPress = true;
 
 /* Initial setup for players.
  * Disables most abilities and ui elements.
@@ -38,7 +39,7 @@ Event.OnPlayerJoin
     DisableScoreboard(EventPlayer());
     //SetUltimateAbilityEnabled(EventPlayer(), false);
     SetMeleeEnabled(EventPlayer(), false);
-    SetCrouchEnabled(EventPlayer(), false);
+    //SetCrouchEnabled(EventPlayer(), false);
     SetReloadEnabled(EventPlayer(), false);
     SetAbility1Enabled(EventPlayer(), false);
     SetAbility2Enabled(EventPlayer(), false);
@@ -104,22 +105,26 @@ void assignTasks(ref define player, ref define numTasks) {
 /* Update the hud task strings.
  */
 void updateHudStrings(ref define player) {
-    player.hudTaskString = <"TODO:<0><1><2><3><4><5>",
-        player.incompleteTasks.Length > 0 ? <"\n▷ <0>", player.incompleteTasks[0].Name> : "",
-        player.incompleteTasks.Length > 1 ? <"\n▷ <0>", player.incompleteTasks[1].Name> : "",
-        player.incompleteTasks.Length > 2 ? <"\n▷ <0>", player.incompleteTasks[2].Name> : "",
-        player.incompleteTasks.Length > 3 ? <"\n▷ <0>", player.incompleteTasks[3].Name> : "",
-        player.incompleteTasks.Length > 4 ? <"\n▷ <0>", player.incompleteTasks[4].Name> : "",
-        player.incompleteTasks.Length > 5 ? <"\n▷ <0>", player.incompleteTasks[5].Name> : ""
-    >;
-    player.hudCompleteTaskString = <"Done:<0><1><2><3><4><5>",
-        player.completeTasks.Length > 0 ? <"\n▶ <0>", player.completeTasks[0].Name> : "",
-        player.completeTasks.Length > 1 ? <"\n▶ <0>", player.completeTasks[1].Name> : "",
-        player.completeTasks.Length > 2 ? <"\n▶ <0>", player.completeTasks[2].Name> : "",
-        player.completeTasks.Length > 3 ? <"\n▶ <0>", player.completeTasks[3].Name> : "",
-        player.completeTasks.Length > 4 ? <"\n▶ <0>", player.completeTasks[4].Name> : "",
-        player.completeTasks.Length > 5 ? <"\n▶ <0>", player.completeTasks[5].Name> : ""
-    >;
+    if (sabotageInProgress == SabotageType.DisableComms) {
+        player.hudTaskString = "COMMS DISABLED"
+    } else {
+        player.hudTaskString = <"TODO:<0><1><2><3><4><5>",
+            player.incompleteTasks.Length > 0 ? <"\n▷ <0>", player.incompleteTasks[0].Name> : "",
+            player.incompleteTasks.Length > 1 ? <"\n▷ <0>", player.incompleteTasks[1].Name> : "",
+            player.incompleteTasks.Length > 2 ? <"\n▷ <0>", player.incompleteTasks[2].Name> : "",
+            player.incompleteTasks.Length > 3 ? <"\n▷ <0>", player.incompleteTasks[3].Name> : "",
+            player.incompleteTasks.Length > 4 ? <"\n▷ <0>", player.incompleteTasks[4].Name> : "",
+            player.incompleteTasks.Length > 5 ? <"\n▷ <0>", player.incompleteTasks[5].Name> : ""
+        >;
+        player.hudCompleteTaskString = <"Done:<0><1><2><3><4><5>",
+            player.completeTasks.Length > 0 ? <"\n▶ <0>", player.completeTasks[0].Name> : "",
+            player.completeTasks.Length > 1 ? <"\n▶ <0>", player.completeTasks[1].Name> : "",
+            player.completeTasks.Length > 2 ? <"\n▶ <0>", player.completeTasks[2].Name> : "",
+            player.completeTasks.Length > 3 ? <"\n▶ <0>", player.completeTasks[3].Name> : "",
+            player.completeTasks.Length > 4 ? <"\n▶ <0>", player.completeTasks[4].Name> : "",
+            player.completeTasks.Length > 5 ? <"\n▶ <0>", player.completeTasks[5].Name> : ""
+        >;
+    }
 }
 
 /* Debug-only update logic.
@@ -146,14 +151,10 @@ void findCrewNearestTask(ref define player) {
             player.hudInteractString = player.incompleteTasks[i].Name;
             player.interactableTask = player.incompleteTasks[i];
             player.canTask = true;
-
-            if (IsButtonHeld(player, Button.Interact)) {
-                return;
-            }
+            return;
         }
     }
 }
-
 
 /* Find the nearest corpse or button and check if it is near enough to be reportable.
  */
@@ -189,7 +190,7 @@ void playerUpdate(ref define player) {
 
 void renderHudInteractString(ref define player) {
     if (player.closestSabotage != null) {
-        player.hudInteractString = "Reset Circuit Breaker"
+        player.hudInteractString = sabotageInteractString
     }
 }
 
@@ -217,7 +218,7 @@ if (!EventPlayer().isAlive)
     DisableMovementCollisionWithPlayers(EventPlayer());
     SetInvisible(EventPlayer(), InvisibleTo.All);
     ForcePlayerHero(EventPlayer(), Hero.Zenyatta);
-    SetMoveSpeed(EventPlayer(), 3 * MoveSpeed.Value);
+    SetMoveSpeed(EventPlayer(), 2 * MoveSpeed.Value);
 }
 
 rule: "Player: Interact (Fix Sabotage)"
@@ -257,11 +258,13 @@ if (gameState == GameState.Play)
 if (playing)
 if (sabotageInProgress < 0)
 if (IsButtonHeld(EventPlayer(), Button.Reload))
+if (EventPlayer().hasButtonPress)
 if (EventPlayer().isAlive)
 if (!EventPlayer().isVenting)
 if (!EventPlayer().canReportCorpse)
 if (DistanceBetween(EventPlayer(), EmergencyButtonLocation) < 5)
 {
+    EventPlayer().hasButtonPress = false;
     StartVotingRound();
 }
 

@@ -2,10 +2,16 @@ import "main.ostw";
 
 // Sabotage Menu
 
+enum SabotageType {
+    None = -1,
+    OverloadPower = 0,
+    DisableComms = 1
+}
+
 globalvar PlayerMenuOption[] sabotageOptions = [
     new MenuText("Select Sabotage"),
-    new SabotageButton("Overload Power Transformers", 0, 0, 60),
-    new SabotageButton("Disable Communications", 0, 0, 30)
+    new SabotageButton("Overload Power Transformers", 0, SabotageType.OverloadPower, 60),
+    new SabotageButton("Disable Communications", 0, SabotageType.DisableComms, 30)
 ];
 
 playervar define isSabotageMenuOpen;
@@ -145,15 +151,18 @@ class SabotageButton : PlayerMenuOption {
 globalvar define sabotageInProgress = -1;
 globalvar define sabotageInProgressHeader = "";
 globalvar define sabotageInProgressValue = "";
+globalvar define sabotageInteractString = "";
 globalvar define[] sabotageLocations;
 globalvar define[] sabotageEntityIds;
 globalvar define[] sabotageTextIds;
 
 void StartSabotageEvent() {
-    if (sabotageInProgress == 0) {
+    if (sabotageInProgress == SabotageType.OverloadPower) {
         startPowerOverloadSabotageEvent();
+    } else if (sabotageInProgress == SabotageType.DisableComms) {
+        startDisableCommunicationsSabotageEvent();
     } else {
-        sabotageInProgress = -1;
+        sabotageInProgress = SabotageType.None;
     }
 }
 
@@ -176,7 +185,7 @@ void CleanUpSabotage() "Sabotage: Clean Up" {
 define getNearestSabotageLocation(ref define player) {
     define closestSabotageDistance = 10.0;
     define _closestSabotage = null;
-    if (sabotageInProgress == 0) {
+    if (sabotageInProgress >= 0) {
         foreach (Vector v in sabotageLocations) {
             define distance = DistanceBetween(player, v);
             if (distance <= closestSabotageDistance) {
@@ -190,15 +199,17 @@ define getNearestSabotageLocation(ref define player) {
 }
 
 void fixSabotageAt(ref Vector v) {
-    if (sabotageInProgress == 0) {
+    if (sabotageInProgress == SabotageType.OverloadPower) {
         fixTransformerBoxAt(v);
+    } else if (sabotageInProgress == SabotageType.DisableComms) {
+        fixCommsAt(v);
     }
 }
 
 rule: "Sabotage: Fail"
 if (gameState == GameState.Play)
 if (playing)
-if (sabotageInProgress >= 0)
+if (sabotageInProgress == SabotageType.OverloadPower)
 if (sabotageInProgressValue == 0)
 {
     imposterVictory();
@@ -214,6 +225,7 @@ globalvar define[] transformerBoxComplete;
 
 void startPowerOverloadSabotageEvent() {
     sabotageInProgressHeader = "Power Overload: Reset Circuit Breakers!";
+    sabotageInteractString = "Reset Circuit Breaker";
     StopChasingVariable(sabotageInProgressValue);
     ChaseVariableAtRate(sabotageInProgressValue, 0, 1, RateChaseReevaluation.None);
     sabotageInProgressValue = 60;
@@ -265,7 +277,7 @@ void drawTransformerBox(ref define idx) {
     ModifyVariable(sabotageTextIds, Operation.AppendToArray, LastTextID());
 
     CreateInWorldText(
-        VisibleTo: transformerBoxComplete[idx] ? EmptyArray() : FilteredArray(AllPlayers(), DistanceBetween(ArrayElement(), TransformerBoxes[idx]) <= 5),
+        VisibleTo: transformerBoxComplete[idx] ? EmptyArray() : PlayersWithinRadius(TransformerBoxes[idx], 5),
         Header: "Reset Circuit Breaker",
         Position: TransformerBoxes[idx],
         Scale: 4,
@@ -277,3 +289,65 @@ void drawTransformerBox(ref define idx) {
 }
 
 // Disable Communications
+
+globalvar Vector CommunicationsHub = Vector(-217.24, 2.0, 6.90);
+
+void startDisableCommunicationsSabotageEvent() {
+    sabotageInProgressHeader = "Communications Disabled: Reprogram Comms Hub!";
+    sabotageInteractString = "Reprogram Comms Hub";
+    sabotageLocations = [CommunicationsHub];
+    ModifyVariable(sabotageLocations, Operation.AppendToArray, CommunicationsHub);
+
+    StopChasingVariable(sabotageInProgressValue);
+    sabotageInProgressValue = " ";
+
+    foreach (define p in AllPlayers()) {
+        updateHudStrings(p);
+    }
+
+    drawCommunicationsHub();
+}
+
+void drawCommunicationsHub() {
+    CreateEffect(
+        VisibleTo: AllPlayers(),
+        Type: Effect.Sphere,
+        Color: Color.Red,
+        Position: CommunicationsHub,
+        Radius: 0.75,
+        Reevaluation: EffectRev.None
+    );
+    ModifyVariable(sabotageEntityIds, Operation.AppendToArray, LastCreatedEntity());
+
+    CreateInWorldText(
+        VisibleTo: FilteredArray(AllPlayers(), DistanceBetween(ArrayElement(), CommunicationsHub) > 5),
+        Header: "!",
+        Position: CommunicationsHub,
+        Scale: 5,
+        Clipping: Clipping.DoNotClip,
+        Reevaluation: InworldTextRev.VisibleTo,
+        TextColor: Color.Red
+    );
+    ModifyVariable(sabotageTextIds, Operation.AppendToArray, LastTextID());
+
+    CreateInWorldText(
+        VisibleTo: PlayersWithinRadius(CommunicationsHub, 5),
+        Header: "Reprogram Comms Hub",
+        Position: CommunicationsHub,
+        Scale: 4,
+        Clipping: Clipping.DoNotClip,
+        Reevaluation: InworldTextRev.VisibleTo,
+        TextColor: Color.Red
+    );
+    ModifyVariable(sabotageTextIds, Operation.AppendToArray, LastTextID());
+}
+
+void fixCommsAt(ref Vector v) {
+    PlayEffect(
+        VisibleTo: AllPlayers(),
+        Type: PlayEffect.RingExplosionSound,
+        Position: PositionOf(EventPlayer()),
+        Radius: 100
+    );
+    CleanUpSabotage();
+}

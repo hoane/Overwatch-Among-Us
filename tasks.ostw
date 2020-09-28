@@ -21,16 +21,16 @@ class Task {
             Reevaluation: EffectRev.None
         );
         CreateInWorldText(
-            VisibleTo: PlayersWithinRadius(Position, 3),
-            Header: Name,
+            VisibleTo: PlayersWithinRadius(this.Position, 3),
+            Header: <"<0>: (<1> Sec)", this.Name, this.Duration>,
             TextColor: Color.White,
-            Position: Position,
+            Position: this.Position,
             Scale: 4,
             Clipping: Clipping.DoNotClip,
             Reevaluation: InworldTextRev.VisibleTo
         );
         CreateInWorldText(
-            VisibleTo: FilteredArray(AllPlayers(), ArrayElement().role == PlayerRole.CREW && DistanceBetween(PositionOf(ArrayElement()), Position) > 3 && ArrayElement().incompleteTasks.Contains(this)),
+            VisibleTo: root.sabotageInProgress == SabotageType.DisableComms ? EmptyArray() : FilteredArray(AllPlayers(), ArrayElement().role == PlayerRole.CREW && DistanceBetween(PositionOf(ArrayElement()), Position) > 3 && ArrayElement().incompleteTasks.Contains(this)),
             Header: "▼",
             Position: Position,
             Scale: 4,
