@@ -109,5 +109,5 @@ Event.OnPlayerJoin
         Color: Color.Blue,
         Reevaluation: EffectRev.PositionAndRadius,
         Radius: 0.5
-    )
+    );
 }

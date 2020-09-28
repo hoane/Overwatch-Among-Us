@@ -4,7 +4,8 @@ import "main.ostw";
 
 globalvar PlayerMenuOption[] sabotageOptions = [
     new MenuText("Select Sabotage"),
-    new SabotageButton("Overload Power Transformers", 0, 0, 60)
+    new SabotageButton("Overload Power Transformers", 0, 0, 60),
+    new SabotageButton("Disable Communications", 0, 0, 30)
 ];
 
 playervar define isSabotageMenuOpen;
@@ -203,7 +204,7 @@ if (sabotageInProgressValue == 0)
     imposterVictory();
 }
 
-// Transformer Reset
+// Power Overload
 
 globalvar Vector[] TransformerBoxes = [
     Vector(-167.03, 6.79, -38.47),
@@ -254,9 +255,9 @@ void drawTransformerBox(ref define idx) {
 
     CreateInWorldText(
         VisibleTo: transformerBoxComplete[idx] ? EmptyArray() : FilteredArray(AllPlayers(), DistanceBetween(ArrayElement(), TransformerBoxes[idx]) > 5),
-        Header: "▼",
+        Header: "!",
         Position: TransformerBoxes[idx],
-        Scale: 4,
+        Scale: 5,
         Clipping: Clipping.DoNotClip,
         Reevaluation: InworldTextRev.VisibleTo,
         TextColor: Color.Red
@@ -274,3 +275,5 @@ void drawTransformerBox(ref define idx) {
     );
     ModifyVariable(sabotageTextIds, Operation.AppendToArray, LastTextID());
 }
+
+// Disable Communications

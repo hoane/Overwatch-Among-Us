@@ -20,7 +20,7 @@ void drawVent(ref Vector v) {
     );
     CreateInWorldText(
         VisibleTo: AllAliveImposters(),
-        Header: "▼",
+        Header: "▦",
         TextColor: Color.Purple,
         Position: v,
         Scale: 4,
