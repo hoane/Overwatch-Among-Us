@@ -1,0 +1,6 @@
+- [x] player joined can move
+- [x] dead bot name is zenyatta
+- [x] maybe need a kill sound
+- [x] player can move during vote if was venting during vote
+- [x] nameplates don't appear
+- [x] dead imposters come back

@@ -1,0 +1,55 @@
+# Features
+
+- [ ] Game States
+  - [x] Setup
+  - [x] Play
+  - [ ] Voting
+    - [x] Players brought to voting area
+    - [x] Most votes is ejected
+    - [ ] Vote timer
+  - [ ] Reset
+- [ ] Crewmate
+  - [ ] tasks
+    - 10 tasks added
+    - [ ] Common tasks + setting
+    - [ ] Task length settings
+  - [ ] Special Rooms
+    - [ ] Security Camera
+    - [ ] Bio Signs
+- [ ] Imposter
+  - [x] Kill crewmate
+   - [ ] Sound effect
+  - [x] Kill cooldown
+  - [x] Venting
+    - [x] Enter/Exit Vent
+    - [x] Unravel venting on state transitions, e.g. voting
+      - [x] voting secretly unravels venting
+      - [x] game end
+  - [ ] Sabotage
+- [ ] Player
+  - [x] Report Corpse
+  - [ ] Emergency Meeting
+- [ ] Ghost
+  - [x] Players should go into a special Ghost state when killed instead of actually dying
+  - [x] Ghost tasks
+  - [ ] Ghosts can see each other
+- [ ] End Conditions 
+  - [x] Task Victory
+  - [x] No Impostors Victory
+  - [x] Imposters == Crew Victory
+  
+# Testing Todo
+- [ ] Gameplay
+  - [ ] Players can enter the game
+  - [ ] Non-host players can see the config menu but not operate it
+  - [ ] Imposter players can identify other imposters
+  - [ ] Ghosts
+    - [ ] Ghosts can continue play
+    - [ ] Living players cannot percieve ghosts
+- [ ] UX
+  - [ ] UX elements appear correctly to non-host player
+  - [ ] No missing UX due to 128 ui text limit
+- [ ] Edge Conditions
+  - [ ] Kill & report simultaneously
+  - [ ] Report when venting
+  - [ ] Report when entering / exiting venting

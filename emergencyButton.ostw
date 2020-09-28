@@ -1,0 +1,14 @@
+import "main.ostw";
+
+define EmergencyButtonLocation: Vector(-198.49, 3.03, -6.48);
+
+void drawEmergencyButton() {
+    CreateEffect(
+        VisibleTo: AllPlayers(),
+        Position: EmergencyButtonLocation,
+        Type: Effect.Orb,
+        Color: Color.Red,
+        Reevaluation: EffectRev.None,
+        Radius: 0.5
+    )
+}

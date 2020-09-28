@@ -4,8 +4,16 @@ import "main.ostw";
 playervar define closestCrew;
 playervar define canKill = false;
 playervar define killCooldown = 0;
+playervar define killBeamEffect;
+playervar define killBeamEffectCountdown;
 playervar define canVent = false;
 playervar define isVenting = false;
+
+// Imposter team variables
+globalvar define canSabotage;
+globalvar define sabotageCooldown;
+
+define KILL_DISTANCE: 5;
 
 /* Per-tick state update for imposters.
  */
@@ -24,19 +32,14 @@ void imposterUpdate(ref define player) {
 /* Find the nearest crew member, and determine if they are killable.
  */
 void findImposterNearestCrew(ref define player) {
-    define closestCrewDistance = 10.0;
-    define _closestCrew;
-    // Find first incomplete task within 3 meters
-    foreach (define crew in FilteredArray(AllPlayers(), ArrayElement().role == PlayerRole.CREW && ArrayElement().isAlive)) {
-        define distance = DistanceBetween(PositionOf(player), PositionOf(crew));
-        if (distance < closestCrewDistance) {
-            _closestCrew = crew;
-            closestCrewDistance = distance;
-        }
-    }
+    player.closestCrew = RayCastHitPlayer(
+        StartPOS: EyePosition(player),
+        EndPOS: EyePosition(EventPlayer()) + KILL_DISTANCE * FacingDirectionOf(player),
+        PlayersToInclude: AllAliveCrew(),
+        PlayersToExclude: player
+    );
 
-    if (closestCrewDistance <= 5.0) {
-        player.closestCrew = _closestCrew;
+    if (player.closestCrew != null) {
         player.canKill = true;
         if (player.killCooldown == 0) {
             player.hudInteractString = <"Kill <0> <1>", HeroIconString(HeroOf(closestCrew)), SafePlayerName(closestCrew)>;
@@ -48,7 +51,7 @@ void findImposterNearestCrew(ref define player) {
 
 define isVentNearby(ref define player) {
     foreach (Vector v in global_vents) {
-        if (DistanceBetween(PositionOf(player), v) <= 1.0) {
+        if (DistanceBetween(PositionOf(player), v) <= 2.0) {
             return true;
         }
     }
@@ -69,6 +72,33 @@ define killPlayer(define target) "Kill Player" {
     }
 }
 
+void resetSabotage() "Reset Sabotage" {
+    sabotageCooldown = 0;
+    canSabotage = true;
+}
+
+rule: "Global: Imposter Enable Sabotage"
+Event.OngoingGlobal
+if (sabotageCooldown == 0)
+{
+    canSabotage = true;
+}
+
+rule: "Player: Imposter Ult (Sabotage)"
+Event.OngoingPlayer
+if (gameState == GameState.Play)
+if (playing)
+if (canSabotage)
+if (EventPlayer().role == PlayerRole.IMPOSTER)
+if (IsButtonHeld(EventPlayer(), Button.Ultimate))
+{
+    canSabotage = false;
+    sabotageCooldown = SabotageCooldown.Value;
+    StopChasingVariable(sabotageCooldown);
+    ChaseVariableAtRate(sabotageCooldown, 0, 1, RateChaseReevaluation.None);
+}
+
+
 rule: "Player: Imposter Interact (Vent)"
 Event.OngoingPlayer
 if (gameState == GameState.Play)
@@ -88,13 +118,14 @@ Event.OngoingPlayer
 if (gameState == GameState.Play)
 if (playing)
 if (EventPlayer().role == PlayerRole.IMPOSTER)
+if (EventPlayer().isAlive)
 if (EventPlayer().isVenting)
 {
     StopChasingVariable(EventPlayer().killCooldown);
     SetInvisible(EventPlayer(), InvisibleTo.All);
     EventPlayer().originalHero = HeroOf(EventPlayer());
     ForcePlayerHero(EventPlayer(), Hero.Zenyatta);
-    SetMoveSpeed(EventPlayer(), 400);
+    SetMoveSpeed(EventPlayer(), 3 * MoveSpeed.Value);
     DisableMovementCollisionWithPlayers(EventPlayer());
 }
 
@@ -103,32 +134,79 @@ Event.OngoingPlayer
 if (gameState == GameState.Play)
 if (playing)
 if (EventPlayer().role == PlayerRole.IMPOSTER)
+if (EventPlayer().isAlive)
 if (!EventPlayer().isVenting)
 {
     StopChasingVariable(EventPlayer().killCooldown);
     ChaseVariableAtRate(EventPlayer().killCooldown, 0, 1.0, RateChaseReevaluation.None);
     ForcePlayerHero(EventPlayer(), EventPlayer().originalHero);
     EnableMovementCollisionWithPlayers(EventPlayer());
-    SetMoveSpeed(EventPlayer(), 100);
+    SetMoveSpeed(EventPlayer(), MoveSpeed.Value);
     SetInvisible(EventPlayer(), InvisibleTo.None);
 }
 
+rule: "Player: Destroy Kill Beam Effect"
+Event.OngoingPlayer
+if (EventPlayer().killBeamEffectCountdown == 0)
+{
+    DestroyEffect(EventPlayer().killBeamEffect);
+}
 
 rule: "Player: Imposter Interact (Kill)"
 Event.OngoingPlayer
 if (gameState == GameState.Play)
 if (playing)
+if (EventPlayer().isAlive)
 if (EventPlayer().role == PlayerRole.IMPOSTER)
 if (IsButtonHeld(EventPlayer(), Button.Interact))
-if (EventPlayer().canKill)
 if (!EventPlayer().isVenting)
 if (EventPlayer().killCooldown == 0)
 {
+    
+    define killTarget = RayCastHitPlayer(
+        StartPOS: EyePosition(EventPlayer()),
+        EndPOS: EyePosition(EventPlayer()) + KILL_DISTANCE * FacingDirectionOf(EventPlayer()),
+        PlayersToInclude: AllAliveCrew(),
+        PlayersToExclude: EventPlayer()
+    );
+
+    if (killTarget == null) return;
+
     EventPlayer().canVent = false;
-    if (killPlayer(EventPlayer().closestCrew)) {
-        EventPlayer().canKill = false;
+    EventPlayer().canKill = false;
+
+    CreateBeamEffect(
+        VisibleTo: AllPlayers(),
+        BeamType: BeamType.BadBeam,
+        Color: Color.Purple,
+        StartPosition: EventPlayer(),
+        EndPosition: killTarget,
+        Reevaluation: EffectRev.None
+    );
+    
+    EventPlayer().killBeamEffect = LastCreatedEntity();
+    EventPlayer().killBeamEffectCountdown = 1;
+    StopChasingVariable(EventPlayer().killBeamEffectCountdown);
+    ChaseVariableAtRate(EventPlayer().killBeamEffectCountdown, 0, 1, RateChaseReevaluation.None);
+
+    if (killPlayer(killTarget)) {
         EventPlayer().killCooldown = KillCooldown.Value;
+        PlayEffect(
+            VisibleTo: AllPlayers(),
+            Type: PlayEffect.ExplosionSound,
+            Position: PositionOf(EventPlayer()),
+            Radius: 100
+        );
+        PlayEffect(
+            VisibleTo: AllPlayers(),
+            Type: PlayEffect.BadExplosion,
+            Color: Color.Purple,
+            Position: LinearInterpolate(PositionOf(killTarget), PositionOf(EventPlayer()), 0.5) + Vector(0, 1, 0),
+            Radius: 1.0
+        );
         checkEndGame();
+    } else {
+        EventPlayer().killBeamEffectCountdown = 0;
     }
 }
 
@@ -144,6 +222,7 @@ if (EventPlayer().role == PlayerRole.IMPOSTER)
     EventPlayer().canKill = false;
     EventPlayer().canVent = false;
     EventPlayer().isVenting = false;
+
     while (gameState == GameState.Play) {
         playerUpdate(EventPlayer());
         imposterUpdate(EventPlayer());

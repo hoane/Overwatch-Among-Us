@@ -5,10 +5,12 @@ globalvar define renderedHostMenu = "";
 
 globalvar NumberOption NumImposters = new NumberOption("Imposter Count", 1, 3, 3, 1, "");
 globalvar NumberOption VotingTime = new NumberOption("Voting Time", 15, 120, 60, 5, "");
-globalvar NumberOption NumTasks = new NumberOption("Task Count", 2, 6, 3, 1, "");
+globalvar NumberOption NumTasks = new NumberOption("Task Count", 2, 8, 6, 1, "");
 globalvar NumberOption KillCooldown = new NumberOption("Kill Cooldown", 5, 120, 10, 5, "");
-
+globalvar NumberOption SabotageCooldown = new NumberOption("Sabotage Cooldown", 5, 120, 10, 5, "");
 globalvar NumberOption NumBots = new NumberOption("Bot Count", 0, 9, 8, 1, "");
+globalvar NumberOption MoveSpeed = new NumberOption("Move Speed", 50, 300, 150, 10, "");
+globalvar NumberOption SetHostImposter = new NumberOption("Host Imposter", 0, 1, 0, 1, "");
 
 globalvar HostMenuOption[] options = [
     new ActionButton("Start Game", 0),
@@ -16,6 +18,9 @@ globalvar HostMenuOption[] options = [
     VotingTime,
     NumTasks,
     KillCooldown,
+    SabotageCooldown,
+    MoveSpeed,
+    SetHostImposter,
     NumBots
 ];
 
@@ -139,7 +144,9 @@ class ActionButton : HostMenuOption {
         if (Action == 0) {
             root.spawnBots(root.NumBots.Value);
             DestroyAllHudText();
-            Wait(5);
+            if (root.NumBots.Value > 0) {
+                Wait(5);
+            }
             root.assignRoles(root.NumImposters.Value);
             root.gameState = GameState.Start;
         }

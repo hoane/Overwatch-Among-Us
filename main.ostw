@@ -10,6 +10,7 @@ import "imposter.ostw";
 import "crewmate.ostw";
 import "voting.ostw";
 import "vents.ostw";
+import "emergencyButton.ostw";
 
 enum GameState {
     Waiting,
@@ -46,6 +47,7 @@ if (gameState == GameState.Start)
     markCenter();
     drawTasks();
     drawVents();
+    drawEmergencyButton();
     Wait(1);
     gameState = GameState.Play;
 }
@@ -80,8 +82,9 @@ Event.OngoingPlayer
 if (gameState == GameState.Play) {
     drawPlayerHUD(EventPlayer());
     updateHudStrings(EventPlayer());
+    resetSabotage();
 
-    SetMoveSpeed(AllPlayers(), 100);
+    SetMoveSpeed(AllPlayers(), MoveSpeed.Value);
     StopForcingThrottle(AllPlayers());
 }
 

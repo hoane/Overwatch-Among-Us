@@ -74,6 +74,18 @@ void drawGlobalHUD() {
         Reevaluation: HudTextRev.VisibleTo,
         SortOrder   : 4
     );
+
+    CreateHudText(
+        VisibleTo   : FilteredArray(AllPlayers(), ArrayElement().role == PlayerRole.IMPOSTER),
+        Header      : InputBindingString(ButtonValue(Button.Ultimate)),
+        HeaderColor : Color.Purple,
+        Text        : canSabotage ? "Sabotage" : <"Cooldown: <0>", RoundToInteger(sabotageCooldown, Rounding.Up)>,
+        TextColor   : Color.Purple,
+        Location    : Location.Right,
+        Spectators  : Spectators.VisibleNever,
+        Reevaluation: HudTextRev.VisibleToAndString,
+        SortOrder   : 5
+    );
 }
 
 void drawPlayerHUD(ref define player) {

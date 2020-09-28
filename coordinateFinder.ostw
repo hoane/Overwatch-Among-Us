@@ -38,7 +38,7 @@ rule: "Player Setup"
 Event.OnPlayerJoin
 {
     ForcePlayerHero(EventPlayer(), Hero.Ana);
-    DisableHeroHud(EventPlayer());
+    //DisableHeroHud(EventPlayer());
     DisableGameModeHud(EventPlayer());
     DisableKillFeed(EventPlayer());
     DisableMessages(EventPlayer());
@@ -76,4 +76,38 @@ Event.OnPlayerJoin
         Header: <"Z: <0>", ZOf(PositionOf(EventPlayer()))>,
         SortOrder: 3
     );
+
+    CreateHudText(
+        VisibleTo: EventPlayer(),
+        Header: <"X: <0>", XOf(RayCastHitPosition(EyePosition(EventPlayer()), EyePosition(EventPlayer()) + 10 * FacingDirectionOf(EventPlayer())))>,
+        TextColor: Color.Blue,
+        Location: Location.Right,
+        Reevaluation: HudTextRev.String,
+        SortOrder: 1
+    );
+    CreateHudText(
+        VisibleTo: EventPlayer(),
+        Header: <"Y: <0>", YOf(RayCastHitPosition(EyePosition(EventPlayer()), EyePosition(EventPlayer()) + 10 * FacingDirectionOf(EventPlayer())))>,
+        TextColor: Color.Blue,
+        Location: Location.Right,
+        Reevaluation: HudTextRev.String,
+        SortOrder: 2
+    );
+    CreateHudText(
+        VisibleTo: EventPlayer(),
+        Header: <"Z: <0>", ZOf(RayCastHitPosition(EyePosition(EventPlayer()), EyePosition(EventPlayer()) + 10 * FacingDirectionOf(EventPlayer())))>,
+        TextColor: Color.Blue,
+        Location: Location.Right,
+        Reevaluation: HudTextRev.String,
+        SortOrder: 3
+    );
+
+    CreateEffect(
+        VisibleTo: EventPlayer(),
+        Position: RayCastHitPosition(EyePosition(EventPlayer()), EyePosition(EventPlayer()) + 10 * FacingDirectionOf(EventPlayer())),
+        Type: Effect.Orb,
+        Color: Color.Blue,
+        Reevaluation: EffectRev.PositionAndRadius,
+        Radius: 0.5
+    )
 }

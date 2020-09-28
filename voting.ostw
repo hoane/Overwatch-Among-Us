@@ -16,10 +16,12 @@ playervar define voted = false;
 define secretLocation: Vector(-143, -3, -100);
 
 void StartVotingRound() "Voting: Start Voting" {
-    SetMoveSpeed(AllPlayers());
+    SetMoveSpeed(AllPlayers(), 0);
     Teleport(FilteredArray(AllPlayers(), ArrayElement().isVenting), secretLocation);
     AllPlayers().isVenting = false;
+    SetMoveSpeed(AllPlayers(), 0);
     Wait(1);
+    SetMoveSpeed(AllPlayers(), 0);
     votingStarted = false;
     gameState = GameState.Voting;
 }
@@ -38,7 +40,7 @@ if (gameState == GameState.Voting)
 }
 
 void RenderVoting() "Voting Menu: Render Voting" {
-    renderedVoting = <"Voting: <0> Total", recordedVotes.Length / 2>;
+    renderedVoting = <"Voting: <0> Total\n", recordedVotes.Length / 2>;
     for (define i = 0; i < recordedVotes.Length; i += 2) {
         renderedVoting = <"<0>\n<1> Voted",
             renderedVoting,
@@ -48,7 +50,7 @@ void RenderVoting() "Voting Menu: Render Voting" {
 }
 
 void RenderVotes() "Voting Menu: Render Votes" {
-    renderedVotes = <"Votes: <0> Total", recordedVotes.Length / 2>;
+    renderedVotes = <"Votes: <0> Total\n", recordedVotes.Length / 2>;
     define[] players = AllAlive();
     define[] votesByPlayer = EmptyArray();
     define[] votersByPlayer = EmptyArray();
@@ -132,7 +134,7 @@ if (!votingStarted)
     ModifyVariable(votingOptions, Operation.AppendToArray, new MenuText("\nDead:\n"));
     foreach (define deadPlayer in AllGhosts()) {
         ModifyVariable(votingOptions, Operation.AppendToArray,
-            new MenuText(<"<0>", IsDummyBot(deadPlayer) ? HeroOf(deadPlayer) : deadPlayer>)
+            new MenuText(<"<0>", IsDummyBot(deadPlayer) ? deadPlayer.originalHero : deadPlayer>)
         );
     }
 
@@ -208,8 +210,16 @@ if (recordedVotes.Length == CountOf(AllAlive()) * 2 || votingTimer == 0)
     );
 
     Wait(5);
-    playerToEject.isAlive = false;
-    Wait(5);
+    if (playerToEject != "Nobody") {
+        playerToEject.isAlive = false;
+        PlayEffect(
+            VisibleTo: AllPlayers(),
+            Type: PlayEffect.ExplosionSound,
+            Position: PositionOf(playerToEject),
+            Radius: 200
+        );
+    }
+    Wait(3);
     DestroyAllHudText();
     Wait(0.5);
 

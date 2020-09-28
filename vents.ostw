@@ -18,6 +18,15 @@ void drawVent(ref Vector v) {
         Radius: 0.5,
         Reevaluation: EffectRev.None
     );
+    CreateInWorldText(
+        VisibleTo: AllAliveImposters(),
+        Header: "▼",
+        TextColor: Color.Purple,
+        Position: v,
+        Scale: 4,
+        Clipping: Clipping.DoNotClip,
+        Reevaluation: InworldTextRev.VisibleTo
+    );
 }
 
 

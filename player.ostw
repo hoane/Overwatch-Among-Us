@@ -32,10 +32,10 @@ Event.OnPlayerJoin
     DisableSpectate(EventPlayer());
     DisableHeroHud(EventPlayer())
     DisableSpectateHUD(EventPlayer());
-    DisableNameplates(EventPlayer());
+    EnableNameplates(EventPlayer());
     DisableRespawning(EventPlayer());
     DisableScoreboard(EventPlayer());
-    SetUltimateAbilityEnabled(EventPlayer(), false);
+    //SetUltimateAbilityEnabled(EventPlayer(), false);
     SetMeleeEnabled(EventPlayer(), false);
     SetCrouchEnabled(EventPlayer(), false);
     SetReloadEnabled(EventPlayer(), false);
@@ -45,6 +45,7 @@ Event.OnPlayerJoin
     SetSecondaryFireEnabled(EventPlayer(), false);
     SetJumpEnabled(EventPlayer(), false);
     SetDamageReceived(EventPlayer(), 0);
+    SetMoveSpeed(EventPlayer(), 0);
 }
 
 define respawnLocation: Vector(-199.46, 1.01, -7.59);
@@ -82,6 +83,10 @@ void putPlayerInCircle(ref define player) {
 void assignRoles(ref define imposters) {
     AllPlayers().role = PlayerRole.CREW;
     ChooseArray(AllPlayers(), imposters).role = PlayerRole.IMPOSTER;
+
+    if (SetHostImposter.Value > 0) {
+        HostPlayer().role = PlayerRole.IMPOSTER;
+    }
 }
 
 /* Give each player a selection of random tasks.
@@ -147,9 +152,9 @@ void findCrewNearestTask(ref define player) {
 }
 
 
-/* Find the nearest corpse and check if it is near enough to be reportable.
+/* Find the nearest corpse or button and check if it is near enough to be reportable.
  */
-void findNearestCorpse(ref define player) {
+void findNearestReportable(ref define player) {
     define closestCorpseDistance = 10.0;
     define _closestCorpse;
     foreach (define p in FilteredArray(AllPlayers(), ArrayElement().hasCorpse)) {
@@ -164,6 +169,8 @@ void findNearestCorpse(ref define player) {
         player.closestCorpse = _closestCorpse;
         player.canReportCorpse = true;
         player.hudReloadString = "Report";
+    } else if (DistanceBetween(player, EmergencyButtonLocation) < InteractRadius) {
+        player.hudReloadString = "Call Emergency Meeting";
     } else {
         player.hudReloadString = "";
     }
@@ -172,7 +179,7 @@ void findNearestCorpse(ref define player) {
 /* Per-tick state update for all players, crew and imposters
  */
 void playerUpdate(ref define player) {
-    findNearestCorpse(player);
+    findNearestReportable(player);
     debugUpdate(player);
 }
 /*
@@ -199,7 +206,7 @@ if (!EventPlayer().isAlive)
     DisableMovementCollisionWithPlayers(EventPlayer());
     SetInvisible(EventPlayer(), InvisibleTo.All);
     ForcePlayerHero(EventPlayer(), Hero.Zenyatta);
-    SetMoveSpeed(EventPlayer(), 300);
+    SetMoveSpeed(EventPlayer(), 3 * MoveSpeed.Value);
 }
 
 rule: "Player: Interact (Report Corpse)"
@@ -209,12 +216,26 @@ if (playing)
 if (IsButtonHeld(EventPlayer(), Button.Reload))
 if (EventPlayer().isAlive)
 if (EventPlayer().canReportCorpse)
+if (!EventPlayer().isVenting)
 {
     EventPlayer().canReportCorpse = false;
     DestroyEffect(EventPlayer().closestCorpse.EntityId);
     DestroyInWorldText(EventPlayer().closestCorpse.TextId);
     EventPlayer().closestCorpse.Player.hasCorpse = false;
 
+    StartVotingRound();
+}
+
+rule: "Player: Interact (Emergency Button)"
+Event.OngoingPlayer
+if (gameState == GameState.Play)
+if (playing)
+if (IsButtonHeld(EventPlayer(), Button.Reload))
+if (EventPlayer().isAlive)
+if (!EventPlayer().isVenting)
+if (!EventPlayer().canReportCorpse)
+if (DistanceBetween(EventPlayer(), EmergencyButtonLocation) < 5)
+{
     StartVotingRound();
 }
 
