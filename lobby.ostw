@@ -145,7 +145,7 @@ class ActionButton : HostMenuOption {
             root.spawnBots(root.NumBots.Value);
             DestroyAllHudText();
             if (root.NumBots.Value > 0) {
-                Wait(5);
+                Wait(3);
             }
             root.assignRoles(root.NumImposters.Value);
             root.gameState = GameState.Start;

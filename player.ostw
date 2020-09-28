@@ -124,6 +124,7 @@ void updateHudStrings(ref define player) {
 /* Debug-only update logic.
  */
 void debugUpdate(ref define player) {
+    /*
     if (IsButtonHeld(player, Button.Ultimate)) {
         totalCompleteTaskCount += 5;
         checkEndGame();
@@ -131,6 +132,7 @@ void debugUpdate(ref define player) {
     if (IsButtonHeld(player, Button.Ability1)) {
         killPlayer(RandomValueInArray(AllAlive()));
     }
+    */
 }
 
 /* Find the nearest task to the crew member.

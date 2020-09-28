@@ -8,6 +8,7 @@ playervar define killBeamEffect;
 playervar define killBeamEffectCountdown;
 playervar define canVent = false;
 playervar define isVenting = false;
+playervar define releasedUlt;
 
 // Imposter team variables
 globalvar define canSabotage;
@@ -84,20 +85,13 @@ if (sabotageCooldown == 0)
     canSabotage = true;
 }
 
-rule: "Player: Imposter Ult (Sabotage)"
+rule: "Player: Detect Ult button release"
 Event.OngoingPlayer
-if (gameState == GameState.Play)
-if (playing)
-if (canSabotage)
-if (EventPlayer().role == PlayerRole.IMPOSTER)
-if (IsButtonHeld(EventPlayer(), Button.Ultimate))
+if (!EventPlayer().releasedUlt)
+if (!IsButtonHeld(EventPlayer(), Button.Ultimate))
 {
-    canSabotage = false;
-    sabotageCooldown = SabotageCooldown.Value;
-    StopChasingVariable(sabotageCooldown);
-    ChaseVariableAtRate(sabotageCooldown, 0, 1, RateChaseReevaluation.None);
+    EventPlayer().releasedUlt = true;
 }
-
 
 rule: "Player: Imposter Interact (Vent)"
 Event.OngoingPlayer

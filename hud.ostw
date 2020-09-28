@@ -76,6 +76,16 @@ void drawGlobalHUD() {
     );
 
     CreateHudText(
+        VisibleTo   : isSabotageInProgress ? AllPlayers() : EmptyArray(),
+        Header      : sabotageInProgressString,
+        HeaderColor : Color.Red,
+        Location    : Location.Top,
+        Spectators  : Spectators.VisibleNever,
+        Reevaluation: HudTextRev.VisibleToAndString,
+        SortOrder   : 5
+    );
+
+    CreateHudText(
         VisibleTo   : FilteredArray(AllPlayers(), ArrayElement().role == PlayerRole.IMPOSTER),
         Header      : InputBindingString(ButtonValue(Button.Ultimate)),
         HeaderColor : Color.Purple,

@@ -1,0 +1,198 @@
+import "main.ostw";
+
+// Sabotage Menu
+
+globalvar PlayerMenuOption[] sabotageOptions = [
+    new MenuText("Select Sabotage"),
+    new SabotageButton("Sabotage A", 0, 0, 0)
+];
+
+playervar define isSabotageMenuOpen;
+playervar define renderedSabotageMenu;
+playervar define sabotageMenuSelected;
+playervar define sabotageMenuTextId;
+
+rule: "Player: Imposter Ult (Sabotage)"
+Event.OngoingPlayer
+if (gameState == GameState.Play)
+if (playing)
+if (canSabotage)
+if (EventPlayer().role == PlayerRole.IMPOSTER)
+if (!EventPlayer().isSabotageMenuOpen)
+if (EventPlayer().releasedUlt)
+if (IsButtonHeld(EventPlayer(), Button.Ultimate))
+{
+    EventPlayer().releasedUlt = false;
+    EventPlayer().isSabotageMenuOpen = true;
+    EventPlayer().sabotageMenuSelected = 1;
+    //SetMoveSpeed(EventPlayer(), 0);
+
+    CreateHudText(
+        VisibleTo   : EventPlayer(),
+        Header      : EventPlayer().renderedSabotageMenu,
+        HeaderColor : Color.Purple,
+        Text        : sabotageOptions[EventPlayer().sabotageMenuSelected].Controls,
+        TextColor   : Color.Purple,
+        Location    : Location.Top,
+        Spectators  : Spectators.VisibleNever,
+        Reevaluation: HudTextRev.String,
+        SortOrder   : 1
+    );
+    EventPlayer().sabotageMenuTextId = LastTextID();
+    
+    RenderSabotageMenu(EventPlayer());
+}
+
+rule: "Sabotage Menu: Ult (Close Menu)"
+Event.OngoingPlayer
+if (EventPlayer().isSabotageMenuOpen)
+if (EventPlayer().releasedUlt)
+if (IsButtonHeld(EventPlayer(), Button.Ultimate))
+{
+    releasedUlt = false;
+    EventPlayer().isSabotageMenuOpen = false;
+}
+
+void RenderSabotageMenu(define player) "Sabotage: Render Menu" {
+    player.renderedSabotageMenu = "";
+    for (define i = 0; i < sabotageOptions.Length; i++) {
+        player.renderedSabotageMenu = <"<0><1><2>",
+            player.renderedSabotageMenu,
+            sabotageOptions[i].RenderedLine(i == player.sabotageMenuSelected),
+            i < sabotageOptions.Length - 1 ? "\n" : ""
+        >;
+    }
+}
+
+rule: "Sabotage Menu: Disable menu when not available"
+Event.OngoingPlayer
+if (gameState != GameState.Play || !canSabotage)
+if (EventPlayer().isSabotageMenuOpen)
+{
+    EventPlayer().isSabotageMenuOpen = false;
+}
+
+rule: "Sabotage Menu: Destroy Menu"
+Event.OngoingPlayer
+if (!EventPlayer().isSabotageMenuOpen)
+{
+    DestroyHudText(EventPlayer().sabotageMenuTextId);
+}
+
+rule: "Sabotage Menu: Previous Option"
+Event.OngoingPlayer
+if (EventPlayer().isSabotageMenuOpen)
+if (ThrottleOf(EventPlayer()).Z > 0)
+{
+    EventPlayer().sabotageMenuSelected--;
+    if (EventPlayer().sabotageMenuSelected < 1) EventPlayer().sabotageMenuSelected = sabotageOptions.Length - 1;
+    RenderSabotageMenu(EventPlayer());
+}
+
+rule: "Sabotage Menu: Next Option"
+Event.OngoingPlayer
+if (EventPlayer().isSabotageMenuOpen)
+if (ThrottleOf(EventPlayer()).Z < 0)
+{
+    EventPlayer().sabotageMenuSelected++;
+    if (EventPlayer().sabotageMenuSelected >= sabotageOptions.Length) EventPlayer().sabotageMenuSelected = 1;
+    RenderSabotageMenu(EventPlayer());
+}
+
+rule: "Voting Menu: Press"
+Event.OngoingPlayer
+if (canSabotage)
+if (EventPlayer().isSabotageMenuOpen)
+if (IsButtonHeld(EventPlayer(), Button.Interact))
+{
+    sabotageOptions[EventPlayer().sabotageMenuSelected].OnSelect();
+}
+
+class SabotageButton : PlayerMenuOption {
+
+    public define Sabotage;
+    public define Cooldown;
+    
+    public override define Controls: <"Press <0> to sabotage.", InputBindingString(ButtonValue(Button.Interact))>;
+
+    public SabotageButton(ref define name, ref define value, ref define sabotage, ref define cooldown)
+    {
+        Name = name;
+        Value = value;
+        Sabotage = sabotage;
+        Cooldown = cooldown;
+    }
+
+    public override define RenderedLine(define selected): <"<1><0>", Name, selected ? "▶" : "▷">;
+
+    public override void OnSelect()
+    {
+        root.canSabotage = false;
+        EventPlayer().isSabotageMenuOpen = false;
+        root.sabotageCooldown = this.Cooldown == 0 ? root.SabotageCooldown.Value : this.Cooldown;
+        StopChasingVariable(root.sabotageCooldown);
+        ChaseVariableAtRate(root.sabotageCooldown, 0, 1, RateChaseReevaluation.None);
+        SetMoveSpeed(root.MoveSpeed.Value);
+
+        if (this.Sabotage == 0) {
+            root.startPowerOverloadSabotageEvent();
+        }
+    }
+}
+
+// Sabotage Events
+
+globalvar define isSabotageInProgress = false;
+globalvar define sabotageInProgressString = "";
+globalvar define[] sabotageEntityIds;
+globalvar define[] sabotageTextIds;
+
+void cleanUpSabotage() "Sabotage: Clean Up" {
+    foreach (define id in sabotageEntityIds) {
+        DestroyEffect(id);
+    }
+    foreach (define id in sabotageTextIds) {
+        DestroyInWorldText(id);
+    }
+    sabotageEntityIds = [];
+    sabotageTextIds = [];
+}
+
+// Transformer Reset
+
+globalvar Vector[] TransformerBoxes = [
+    Vector(-167.03, 6.79, -38.47),
+    Vector(-190.25, -2.86, -68.97)
+];
+globalvar define[] transformerBoxComplete;
+
+void startPowerOverloadSabotageEvent() {
+    isSabotageInProgress = true;
+    sabotageInProgressString = "Power Overload: Reset Circuit Breakers!";
+
+    drawTransformerBox(TransformerBoxes[0]);
+    drawTransformerBox(TransformerBoxes[1]);
+}
+
+void drawTransformerBox(ref Vector v) {
+    CreateEffect(
+        VisibleTo: AllPlayers(),
+        Type: Effect.Sphere,
+        Color: Color.Red,
+        Position: v,
+        Radius: 0.75,
+        Reevaluation: EffectRev.None
+    );
+    ModifyVariable(sabotageEntityIds, Operation.AppendToArray, LastCreatedEntity());
+
+    CreateInWorldText(
+        VisibleTo: AllPlayers(),
+        Header: "▼",
+        Position: v,
+        Scale: 4,
+        Clipping: Clipping.DoNotClip,
+        Reevaluation: InworldTextRev.None,
+        TextColor: Color.Red
+    );
+    ModifyVariable(sabotageTextIds, Operation.AppendToArray, LastTextID());
+}

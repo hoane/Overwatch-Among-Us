@@ -1,6 +1,6 @@
 import "main.ostw";
 
-globalvar VoteMenuOption[] votingOptions;
+globalvar PlayerMenuOption[] votingOptions;
 globalvar define[] recordedVotes;
 globalvar define renderedVotes = "";
 globalvar define renderedVoting = "";
@@ -263,7 +263,7 @@ if (!EventPlayer().voted)
 if (ThrottleOf(EventPlayer()).Z < 0)
 {
     EventPlayer().votingMenuSelected++;
-    if (EventPlayer().votingMenuSelected > votingOptions.Length) EventPlayer().votingMenuSelected = 0;
+    if (EventPlayer().votingMenuSelected >= votingOptions.Length) EventPlayer().votingMenuSelected = 0;
     RenderVotingOptions(EventPlayer());
 }
 
@@ -278,7 +278,7 @@ if (!forbidVoting)
     votingOptions[EventPlayer().votingMenuSelected].OnSelect();
 }
 
-class VoteMenuOption {
+class PlayerMenuOption {
     public define Name;
     public define Value;
     public virtual define RenderedLine(define selected): "";
@@ -286,7 +286,7 @@ class VoteMenuOption {
     public virtual void OnSelect() {}
 }
 
-class MenuText : VoteMenuOption {
+class MenuText : PlayerMenuOption {
     public MenuText(ref define name) {
         Name = name;
     }
@@ -294,10 +294,10 @@ class MenuText : VoteMenuOption {
     public override define RenderedLine(define selected): Name;
 }
 
-class VoteButton : VoteMenuOption {
+class VoteButton : PlayerMenuOption {
     public override define Controls: <"Press <0> to vote.", InputBindingString(ButtonValue(Button.Interact))>;
 
-    public ActionButton(ref define name, ref define value)
+    public VoteButton(ref define name, ref define value)
     {
         Name = name;
         Value = value;

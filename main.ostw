@@ -11,6 +11,7 @@ import "crewmate.ostw";
 import "voting.ostw";
 import "vents.ostw";
 import "emergencyButton.ostw";
+import "sabotage.ostw";
 
 enum GameState {
     Waiting,
@@ -139,31 +140,39 @@ void endGame() "Play: End Game" {
     reset();
 }
 
+void imposterVictory() "Imposter Victory" {
+    CreateHudText(
+        VisibleTo   : AllPlayers(),
+        Header      : "IMPOSTERS WIN!",
+        HeaderColor : Color.Red,
+        Location    : Location.Top,
+        Spectators  : Spectators.VisibleAlways,
+        Reevaluation: HudTextRev.None,
+        SortOrder   : 10
+    );
+    endGame();
+}
+
+void crewVictory() "Crew Victory" {
+    CreateHudText(
+        VisibleTo   : AllPlayers(),
+        Header      : "CREWMATES WIN!",
+        HeaderColor : Color.Blue,
+        Location    : Location.Top,
+        Spectators  : Spectators.VisibleAlways,
+        Reevaluation: HudTextRev.None,
+        SortOrder   : 10
+    );
+    endGame();
+}
+
 void checkEndGame() "Play: Check End Game" {
     if (playing) {
         if (totalCompleteTaskCount >= totalTaskCount || CountOf(AllAliveImposters()) == 0) {
-            CreateHudText(
-                VisibleTo   : AllPlayers(),
-                Header      : "CREWMATES WIN!",
-                HeaderColor : Color.Blue,
-                Location    : Location.Top,
-                Spectators  : Spectators.VisibleAlways,
-                Reevaluation: HudTextRev.None,
-                SortOrder   : 10
-            );
-            endGame();
+            crewVictory();
         }
         if (CountOf(AllAliveImposters()) >= CountOf(AllAliveCrew())) {
-            CreateHudText(
-                VisibleTo   : AllPlayers(),
-                Header      : "IMPOSTERS WIN!",
-                HeaderColor : Color.Red,
-                Location    : Location.Top,
-                Spectators  : Spectators.VisibleAlways,
-                Reevaluation: HudTextRev.None,
-                SortOrder   : 10
-            );
-            endGame();
+            imposterVictory();
         }
     }
 }
