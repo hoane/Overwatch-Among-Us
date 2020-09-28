@@ -57,4 +57,4 @@ Follow the instructions at https://github.com/ItsDeltin/Overwatch-Script-To-Work
 
 # Screenshots
 
-![Image of Gameplay](https://hoane.github.io/images/Among-Us-Overwatch.png)
+[Image of Gameplay](https://hoane.github.io/images/Among-Us-Overwatch.png)
