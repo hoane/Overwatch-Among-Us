@@ -118,6 +118,7 @@ void reset() "Reset Game" {
 }
 
 void endGame() "Play: End Game" {
+    CleanUpSabotage();
     gameState = GameState.Waiting;
     playing = false;
     SetMoveSpeed(AllPlayers(), 0);

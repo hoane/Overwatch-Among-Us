@@ -76,9 +76,11 @@ void drawGlobalHUD() {
     );
 
     CreateHudText(
-        VisibleTo   : isSabotageInProgress ? AllPlayers() : EmptyArray(),
-        Header      : sabotageInProgressString,
+        VisibleTo   : sabotageInProgress >= 0 ? AllPlayers() : EmptyArray(),
+        Header      : sabotageInProgressHeader,
         HeaderColor : Color.Red,
+        Text        : sabotageInProgressValue,
+        TextColor   : Color.Red,
         Location    : Location.Top,
         Spectators  : Spectators.VisibleNever,
         Reevaluation: HudTextRev.VisibleToAndString,

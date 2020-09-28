@@ -4,7 +4,7 @@ import "main.ostw";
 
 globalvar PlayerMenuOption[] sabotageOptions = [
     new MenuText("Select Sabotage"),
-    new SabotageButton("Sabotage A", 0, 0, 0)
+    new SabotageButton("Overload Power Transformers", 0, 0, 60)
 ];
 
 playervar define isSabotageMenuOpen;
@@ -134,20 +134,34 @@ class SabotageButton : PlayerMenuOption {
         ChaseVariableAtRate(root.sabotageCooldown, 0, 1, RateChaseReevaluation.None);
         SetMoveSpeed(root.MoveSpeed.Value);
 
-        if (this.Sabotage == 0) {
-            root.startPowerOverloadSabotageEvent();
-        }
+        root.sabotageInProgress = this.Sabotage;
+        root.StartSabotageEvent();
     }
 }
 
 // Sabotage Events
 
-globalvar define isSabotageInProgress = false;
-globalvar define sabotageInProgressString = "";
+globalvar define sabotageInProgress = -1;
+globalvar define sabotageInProgressHeader = "";
+globalvar define sabotageInProgressValue = "";
+globalvar define[] sabotageLocations;
 globalvar define[] sabotageEntityIds;
 globalvar define[] sabotageTextIds;
 
-void cleanUpSabotage() "Sabotage: Clean Up" {
+void StartSabotageEvent() {
+    if (sabotageInProgress == 0) {
+        startPowerOverloadSabotageEvent();
+    } else {
+        sabotageInProgress = -1;
+    }
+}
+
+void CleanUpSabotage() "Sabotage: Clean Up" {
+    sabotageInProgress = -1;
+    sabotageLocations = null;
+    sabotageInProgressHeader = "";
+    sabotageInProgressValue = "";
+
     foreach (define id in sabotageEntityIds) {
         DestroyEffect(id);
     }
@@ -156,6 +170,37 @@ void cleanUpSabotage() "Sabotage: Clean Up" {
     }
     sabotageEntityIds = [];
     sabotageTextIds = [];
+}
+
+define getNearestSabotageLocation(ref define player) {
+    define closestSabotageDistance = 10.0;
+    define _closestSabotage = null;
+    if (sabotageInProgress == 0) {
+        foreach (Vector v in sabotageLocations) {
+            define distance = DistanceBetween(player, v);
+            if (distance <= closestSabotageDistance) {
+                _closestSabotage = v;
+                closestSabotageDistance = distance;
+            }
+        }
+    }
+
+    return closestSabotageDistance <= 5 ? _closestSabotage : null;
+}
+
+void fixSabotageAt(ref Vector v) {
+    if (sabotageInProgress == 0) {
+        fixTransformerBoxAt(v);
+    }
+}
+
+rule: "Sabotage: Fail"
+if (gameState == GameState.Play)
+if (playing)
+if (sabotageInProgress >= 0)
+if (sabotageInProgressValue == 0)
+{
+    imposterVictory();
 }
 
 // Transformer Reset
@@ -167,31 +212,64 @@ globalvar Vector[] TransformerBoxes = [
 globalvar define[] transformerBoxComplete;
 
 void startPowerOverloadSabotageEvent() {
-    isSabotageInProgress = true;
-    sabotageInProgressString = "Power Overload: Reset Circuit Breakers!";
+    sabotageInProgressHeader = "Power Overload: Reset Circuit Breakers!";
+    StopChasingVariable(sabotageInProgressValue);
+    ChaseVariableAtRate(sabotageInProgressValue, 0, 1, RateChaseReevaluation.None);
+    sabotageInProgressValue = 60;
 
-    drawTransformerBox(TransformerBoxes[0]);
-    drawTransformerBox(TransformerBoxes[1]);
+    transformerBoxComplete = [false, false];
+    sabotageLocations = TransformerBoxes;
+
+    drawTransformerBox(0);
+    drawTransformerBox(1);
 }
 
-void drawTransformerBox(ref Vector v) {
-    CreateEffect(
+void fixTransformerBoxAt(ref Vector v) {
+    define idx = IndexOfArrayValue(TransformerBoxes, v)
+    if (idx == -1) return;
+    transformerBoxComplete[idx] = true;
+
+    PlayEffect(
         VisibleTo: AllPlayers(),
+        Type: PlayEffect.RingExplosionSound,
+        Position: PositionOf(EventPlayer()),
+        Radius: 100
+    );
+
+    if (IsTrueForAll(transformerBoxComplete, ArrayElement() == true)) {
+        CleanUpSabotage();
+    }
+}
+
+void drawTransformerBox(ref define idx) {
+    CreateEffect(
+        VisibleTo: transformerBoxComplete[idx] ? EmptyArray() : AllPlayers(),
         Type: Effect.Sphere,
         Color: Color.Red,
-        Position: v,
+        Position: TransformerBoxes[idx],
         Radius: 0.75,
-        Reevaluation: EffectRev.None
+        Reevaluation: EffectRev.VisibleTo
     );
     ModifyVariable(sabotageEntityIds, Operation.AppendToArray, LastCreatedEntity());
 
     CreateInWorldText(
-        VisibleTo: AllPlayers(),
+        VisibleTo: transformerBoxComplete[idx] ? EmptyArray() : FilteredArray(AllPlayers(), DistanceBetween(ArrayElement(), TransformerBoxes[idx]) > 5),
         Header: "▼",
-        Position: v,
+        Position: TransformerBoxes[idx],
         Scale: 4,
         Clipping: Clipping.DoNotClip,
-        Reevaluation: InworldTextRev.None,
+        Reevaluation: InworldTextRev.VisibleTo,
+        TextColor: Color.Red
+    );
+    ModifyVariable(sabotageTextIds, Operation.AppendToArray, LastTextID());
+
+    CreateInWorldText(
+        VisibleTo: transformerBoxComplete[idx] ? EmptyArray() : FilteredArray(AllPlayers(), DistanceBetween(ArrayElement(), TransformerBoxes[idx]) <= 5),
+        Header: "Reset Circuit Breaker",
+        Position: TransformerBoxes[idx],
+        Scale: 4,
+        Clipping: Clipping.DoNotClip,
+        Reevaluation: InworldTextRev.VisibleTo,
         TextColor: Color.Red
     );
     ModifyVariable(sabotageTextIds, Operation.AppendToArray, LastTextID());

@@ -19,6 +19,7 @@ playervar Corpse corpse;
 playervar define hasCorpse = false;
 playervar define canReportCorpse = false;
 playervar define originalHero;
+playervar define closestSabotage;
 
 /* Initial setup for players.
  * Disables most abilities and ui elements.
@@ -141,7 +142,7 @@ void findCrewNearestTask(ref define player) {
     player.hudInteractString = "";
     // Find first incomplete task within 3 meters
     for (define i=0; i < player.incompleteTasks.Length; i++) {
-        if (DistanceBetween(PositionOf(player), player.incompleteTasks[i].Position) <= 3) {
+        if (DistanceBetween(player, player.incompleteTasks[i].Position) <= 3) {
             player.hudInteractString = player.incompleteTasks[i].Name;
             player.interactableTask = player.incompleteTasks[i];
             player.canTask = true;
@@ -160,7 +161,7 @@ void findNearestReportable(ref define player) {
     define closestCorpseDistance = 10.0;
     define _closestCorpse;
     foreach (define p in FilteredArray(AllPlayers(), ArrayElement().hasCorpse)) {
-        define distance = DistanceBetween(PositionOf(player), p.corpse.Position);
+        define distance = DistanceBetween(player, p.corpse.Position);
         if (distance <= closestCorpseDistance) {
             _closestCorpse = p.corpse;
             closestCorpseDistance = distance;
@@ -182,8 +183,16 @@ void findNearestReportable(ref define player) {
  */
 void playerUpdate(ref define player) {
     findNearestReportable(player);
+    player.closestSabotage = getNearestSabotageLocation(player);
     debugUpdate(player);
 }
+
+void renderHudInteractString(ref define player) {
+    if (player.closestSabotage != null) {
+        player.hudInteractString = "Reset Circuit Breaker"
+    }
+}
+
 /*
 rule: "Player: isAlive"
 Event.OngoingPlayer
@@ -211,7 +220,20 @@ if (!EventPlayer().isAlive)
     SetMoveSpeed(EventPlayer(), 3 * MoveSpeed.Value);
 }
 
-rule: "Player: Interact (Report Corpse)"
+rule: "Player: Interact (Fix Sabotage)"
+Event.OngoingPlayer
+if (gameState == GameState.Play)
+if (playing)
+if (IsButtonHeld(EventPlayer(), Button.Interact))
+if (EventPlayer().isAlive)
+if (EventPlayer().closestSabotage != null)
+if (!EventPlayer().isVenting)
+{
+    fixSabotageAt(EventPlayer().closestSabotage);
+    EventPlayer().closestSabotage = null;
+}
+
+rule: "Player: Reload (Report Corpse)"
 Event.OngoingPlayer
 if (gameState == GameState.Play)
 if (playing)
@@ -220,6 +242,7 @@ if (EventPlayer().isAlive)
 if (EventPlayer().canReportCorpse)
 if (!EventPlayer().isVenting)
 {
+    CleanUpSabotage();
     EventPlayer().canReportCorpse = false;
     DestroyEffect(EventPlayer().closestCorpse.EntityId);
     DestroyInWorldText(EventPlayer().closestCorpse.TextId);
@@ -228,10 +251,11 @@ if (!EventPlayer().isVenting)
     StartVotingRound();
 }
 
-rule: "Player: Interact (Emergency Button)"
+rule: "Player: Reload (Emergency Button)"
 Event.OngoingPlayer
 if (gameState == GameState.Play)
 if (playing)
+if (sabotageInProgress < 0)
 if (IsButtonHeld(EventPlayer(), Button.Reload))
 if (EventPlayer().isAlive)
 if (!EventPlayer().isVenting)
