@@ -54,3 +54,7 @@ Follow the instructions at https://github.com/ItsDeltin/Overwatch-Script-To-Work
   - [ ] Kill & report simultaneously
   - [ ] Report when venting
   - [ ] Report when entering / exiting venting
+
+# Screenshots
+
+![Image of Gameplay](https://hoane.github.io/images/Among-Us-Overwatch.png)
