@@ -91,7 +91,7 @@ void drawGlobalHUD() {
         VisibleTo   : sabotageInProgress >= 0 ? AllPlayers() : EmptyArray(),
         Header      : sabotageInProgressHeader,
         HeaderColor : Color.Red,
-        Text        : sabotageInProgressValue,
+        Text        : sabotageInProgressValue != 0 ? sabotageInProgressValue : " ",
         TextColor   : Color.Red,
         Location    : Location.Top,
         Spectators  : Spectators.VisibleNever,

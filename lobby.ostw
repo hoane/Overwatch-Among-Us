@@ -4,13 +4,13 @@ globalvar define hostMenuSelected = 0;
 globalvar define renderedHostMenu = "";
 
 globalvar NumberOption NumImposters = new NumberOption("Imposter Count", 1, 3, 3, 1, "");
-globalvar NumberOption VotingTime = new NumberOption("Voting Time", 15, 120, 60, 5, "");
-globalvar NumberOption NumTasks = new NumberOption("Task Count", 2, 8, 6, 1, "");
-globalvar NumberOption KillCooldown = new NumberOption("Kill Cooldown", 5, 120, 10, 5, "");
-globalvar NumberOption KillDistance = new NumberOption("Kill Distance", 1, 20, 5, 1, "");
+globalvar NumberOption VotingTime = new NumberOption("Voting Time", 15, 180, 120, 5, "");
+globalvar NumberOption NumTasks = new NumberOption("Task Count", 2, 8, 5, 1, "");
+globalvar NumberOption KillCooldown = new NumberOption("Kill Cooldown", 5, 120, 25, 5, "");
+globalvar NumberOption KillDistance = new NumberOption("Kill Distance", 1, 20, 10, 1, "");
 globalvar NumberOption SabotageCooldown = new NumberOption("Sabotage Cooldown", 5, 120, 10, 5, "");
-globalvar NumberOption NumBots = new NumberOption("Bot Count", 0, 9, 8, 1, "");
-globalvar NumberOption MoveSpeed = new NumberOption("Move Speed", 50, 300, 150, 10, "");
+globalvar NumberOption NumBots = new NumberOption("Bot Count", 0, 9, 0, 1, "");
+globalvar NumberOption MoveSpeed = new NumberOption("Move Speed", 50, 300, 140, 10, "");
 globalvar NumberOption ForceHostRole = new MultipleOption("Force Host Role", ["No", "Crew", "Imposter", "Fool"]);
 globalvar NumberOption FoolEnabled = new MultipleOption("Fool Enabled", ["No", "Yes", "Always"]);
 
@@ -21,10 +21,12 @@ globalvar HostMenuOption[] options = [
     NumTasks,
     KillCooldown,
     KillDistance,
-    SabotageCooldown,
+    //UNUSED: SabotageCooldown,
     MoveSpeed,
-    //DEBUG: NumBots,
-    //DEBUG: ForceHostRole,
+    ///* DEBUG
+    NumBots,
+    ForceHostRole,
+    //*/
     FoolEnabled
 ];
 
@@ -143,15 +145,18 @@ class ActionButton : HostMenuOption {
 
     public override define RenderedLine(define selected): <"<1><0>", Name, selected ? "▶" : "▷">;
 
-    public override void OnSelect()
-    {
+    public override void OnSelect() {
         if (Action == 0) {
-            BigMessage(AllPlayers(), "Starting Game...");
-            root.spawnBots(root.NumBots.Value);
-            DestroyAllHudText();
-            Wait(root.NumBots.Value * 0.5);
-            root.assignRoles(root.NumImposters.Value);
-            root.gameState = GameState.Start;
+            if (CountOf(AllPlayers()) + root.NumBots.Value > root.NumImposters.Value * 2) {
+                BigMessage(AllPlayers(), "Starting Game...");
+                root.spawnBots(root.NumBots.Value);
+                DestroyAllHudText();
+                Wait(root.NumBots.Value * 0.5);
+                root.assignRoles(root.NumImposters.Value);
+                root.gameState = GameState.Start;
+            } else {
+                SmallMessage(AllPlayers(), "Not enough players vs. Imposter count");
+            }
         }
     }
 }

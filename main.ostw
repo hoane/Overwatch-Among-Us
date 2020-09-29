@@ -130,9 +130,10 @@ void endGame() "Play: End Game" {
 define renderImposterList() "Render Imposter List" {
     define _renderedImposterList = "Imposter(s) were:\n";
     foreach (define imp in FilteredArray(AllPlayers().role == PlayerRole.IMPOSTER)) {
-        _renderedImposterList = <"<0> <1>",
+        _renderedImposterList = <"<0> <1><2>",
             _renderedImposterList,
-            SafePlayerName(imp)
+            availablePips[SlotOf(imp)],
+            IsDummyBot(imp) ? imp.originalHero : imp
         >;
     }
     return _renderedImposterList;

@@ -312,7 +312,7 @@ void startDisableCommunicationsSabotageEvent() {
     ModifyVariable(sabotageLocations, Operation.AppendToArray, CommunicationsHub);
 
     StopChasingVariable(sabotageInProgressValue);
-    sabotageInProgressValue = " ";
+    sabotageInProgressValue = 0;
 
     foreach (define p in AllPlayers()) {
         updateHudStrings(p);
