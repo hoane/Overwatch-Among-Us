@@ -26,8 +26,9 @@
 - [?] death auras are broke
 - [?] move the vote selector off the first player at start of vote
 - [?] Sabotage + report body doesn't stop sabotage timer
-- [ ] last player to be voted off stays as zenyatta
-- [ ] all bodys should disappear after voting
-- [ ] force players to be unique heros
-- [ ] add reporting signifier
+- [?] last player to be voted off stays as zenyatta
+- [x] all bodys should disappear after voting
+- [x] force players to be unique heros
+- [x] add reporting signifier
 - [x] add color pips
+- [x] targeting system for imposters

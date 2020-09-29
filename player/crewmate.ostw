@@ -30,6 +30,14 @@ void updateCrewTaskProgress(ref define player) {
     }
     // If task done, move it to the complete list
     if (player.taskProgressTime >= player.interactableTask.Duration) {
+
+        PlayEffect(
+            VisibleTo: player,
+            Type: PlayEffect.BuffImpactSound,
+            Position: player,
+            Radius: 75
+        );
+
         player.isTaskInProgress = false;
         StopChasingVariable(player.taskProgressTime);
         ModifyVariable(player.completeTasks, Operation.AppendToArray, player.interactableTask);

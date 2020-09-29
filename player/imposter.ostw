@@ -1,7 +1,6 @@
 import "../main.ostw";
 
 // Imposter variables
-playervar define closestCrew;
 playervar define canKill = false;
 playervar define killCooldown = 0;
 playervar define killBeamEffect;
@@ -22,30 +21,36 @@ void imposterUpdate(ref define player) {
     if (player.canVent) {
         player.hudInteractString = "Vent";
     }
-
-    if (!player.isVenting) {
-        findImposterNearestCrew(player);
-    }
 }
 
-/* Find the nearest crew member, and determine if they are killable.
- */
-void findImposterNearestCrew(ref define player) {
-    player.closestCrew = RayCastHitPlayer(
-        StartPOS: EyePosition(player),
-        EndPOS: EyePosition(EventPlayer()) + KillDistance.Value * FacingDirectionOf(player),
-        PlayersToInclude: AllAliveCrew(),
-        PlayersToExclude: player
+void createImposterTargetAura(ref define player) {
+    CreateEffect(
+        VisibleTo: (player.isAlive && player.role == PlayerRole.IMPOSTER && DistanceBetween(player, PlayerClosestToReticle(player)) <= KillDistance.Value) ? player : EmptyArray(),
+        Type: Effect.GoodAura,
+        Color: Color.Purple,
+        Position: PlayerClosestToReticle(player),
+        Radius: 0.75,
+        Reevaluation: EffectRev.VisibleToPositionAndRadius
     );
+    CreateEffect(
+        VisibleTo: (player.isAlive && player.role == PlayerRole.IMPOSTER && DistanceBetween(player, PlayerClosestToReticle(player)) > KillDistance.Value) ? player : EmptyArray(),
+        Type: Effect.GoodAura,
+        Color: Color.White,
+        Position: PlayerClosestToReticle(player),
+        Radius: 0.75,
+        Reevaluation: EffectRev.VisibleToPositionAndRadius
+    );
+}
 
-    if (player.closestCrew != null) {
-        player.canKill = true;
-        if (player.killCooldown == 0) {
-            player.hudInteractString = <"Kill <0> <1>", HeroIconString(HeroOf(closestCrew)), SafePlayerName(closestCrew)>;
-        }
-    } else {
-        player.canKill = false;
-    }
+void createImposterAura(ref define player) {
+    CreateEffect(
+        VisibleTo: FilteredArray(AllPlayers(), ArrayElement().role == PlayerRole.IMPOSTER && ArrayElement() != EventPlayer()),
+        Type: Effect.BadAura,
+        Color: Color.Red,
+        Radius: 0.75,
+        Reevaluation: EffectRev.VisibleToPositionAndRadius,
+        Position: EyePosition(EventPlayer())
+    );
 }
 
 define isVentNearby(ref define player) {
@@ -152,16 +157,11 @@ if (EventPlayer().role == PlayerRole.IMPOSTER)
 if (IsButtonHeld(EventPlayer(), Button.PrimaryFire))
 if (!EventPlayer().isVenting)
 if (EventPlayer().killCooldown == 0)
+if (DistanceBetween(EventPlayer(), PlayerClosestToReticle(EventPlayer())) <= KillDistance.Value)
 {
     
-    define killTarget = RayCastHitPlayer(
-        StartPOS: EyePosition(EventPlayer()),
-        EndPOS: EyePosition(EventPlayer()) + KillDistance.Value * FacingDirectionOf(EventPlayer()),
-        PlayersToInclude: AllAliveCrew(),
-        PlayersToExclude: EventPlayer()
-    );
-
-    if (killTarget == null) return;
+    define killTarget = PlayerClosestToReticle(EventPlayer());
+    if (killTarget == null || !killTarget.isAlive || killTarget.role != PlayerRole.CREW) return;
 
     EventPlayer().canVent = false;
     EventPlayer().canKill = false;

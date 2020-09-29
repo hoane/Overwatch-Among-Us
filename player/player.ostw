@@ -73,20 +73,14 @@ if (gameState == GameState.Lobby)
 
 rule: "Player: State Start"
 Event.OngoingPlayer
-if (gameState == GameState.Start)
+if (gameState == GameState.Start || gameState == GameState.Voting)
 {
     EventPlayer().originalHero = availableHeroes[SlotOf(EventPlayer())];
     ForcePlayerHero(EventPlayer(), EventPlayer().originalHero);
     createPlayerPip(EventPlayer(), SlotOf(EventPlayer()));
     if (EventPlayer().role == PlayerRole.IMPOSTER) {
-        CreateEffect(
-            VisibleTo: FilteredArray(AllPlayers(), ArrayElement().role == PlayerRole.IMPOSTER && ArrayElement() != EventPlayer()),
-            Type: Effect.BadAura,
-            Color: Color.Red,
-            Radius: 1,
-            Reevaluation: EffectRev.VisibleToPositionAndRadius,
-            Position: EyePosition(EventPlayer())
-        );
+        createImposterAura(EventPlayer());
+        createImposterTargetAura(EventPlayer());
     }
     putPlayerInCircle(EventPlayer());
     assignTasks(EventPlayer(), NumTasks.Value);
@@ -208,11 +202,6 @@ void findNearestReportable(ref define player) {
     if (closestCorpseDistance <= 5.0) {
         player.closestCorpse = _closestCorpse;
         player.canReportCorpse = true;
-        player.hudReloadString = "Report";
-    } else if (DistanceBetween(player, EmergencyButtonLocation) < InteractRadius) {
-        player.hudReloadString = "Call Emergency Meeting";
-    } else {
-        player.hudReloadString = "";
     }
 }
 
@@ -220,6 +209,7 @@ void findNearestReportable(ref define player) {
  */
 void playerUpdate(ref define player) {
     findNearestReportable(player);
+    renderHudReloadString(player);
     player.closestSabotage = getNearestSabotageLocation(player);
     debugUpdate(player);
 }
@@ -227,6 +217,16 @@ void playerUpdate(ref define player) {
 void renderHudInteractString(ref define player) {
     if (player.closestSabotage != null) {
         player.hudInteractString = sabotageInteractString
+    }
+}
+
+void renderHudReloadString(ref define player) {
+    if (player.canReportCorpse) {
+        player.hudReloadString = "Report Dead Player";
+    } else if (DistanceBetween(player, EmergencyButtonLocation) < InteractRadius) {
+        player.hudReloadString = "Call Emergency Meeting";
+    } else {
+        player.hudReloadString = "";
     }
 }
 
