@@ -4,7 +4,7 @@ define InteractRadius: 3.0;
 
 define ChooseArray(define array, define n): ArraySlice(RandomizedArray(array), 0, n);
 
-define SafePlayerName(define player): IsDummyBot(player) ? player.originalHero : player;
+define SafePlayerName(define player): <"<0><1>", availablePips[SlotOf(player)], IsDummyBot(player) ? player.originalHero : player>;
 
 define AllAlive(): FilteredArray(AllPlayers(), ArrayElement().isAlive);
 define AllAliveCrew(): FilteredArray(AllPlayers(), ArrayElement().isAlive && ArrayElement().role == PlayerRole.CREW);

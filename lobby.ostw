@@ -147,9 +147,7 @@ class ActionButton : HostMenuOption {
             BigMessage(AllPlayers(), "Starting Game...");
             root.spawnBots(root.NumBots.Value);
             DestroyAllHudText();
-            if (root.NumBots.Value > 0) {
-                Wait(3);
-            }
+            Wait(root.NumBots.Value * 0.5);
             root.assignRoles(root.NumImposters.Value);
             root.gameState = GameState.Start;
         }

@@ -115,7 +115,6 @@ if (EventPlayer().isVenting)
 {
     StopChasingVariable(EventPlayer().killCooldown);
     SetInvisible(EventPlayer(), InvisibleTo.All);
-    EventPlayer().originalHero = HeroOf(EventPlayer());
     ForcePlayerHero(EventPlayer(), Hero.Zenyatta);
     SetMoveSpeed(EventPlayer(), 2 * MoveSpeed.Value);
     DisableMovementCollisionWithPlayers(EventPlayer());
@@ -150,7 +149,7 @@ if (gameState == GameState.Play)
 if (playing)
 if (EventPlayer().isAlive)
 if (EventPlayer().role == PlayerRole.IMPOSTER)
-if (IsButtonHeld(EventPlayer(), Button.Interact))
+if (IsButtonHeld(EventPlayer(), Button.PrimaryFire))
 if (!EventPlayer().isVenting)
 if (EventPlayer().killCooldown == 0)
 {

@@ -8,7 +8,18 @@ enum PlayerRole {
 globalvar Vector circleCenter = Vector(-208.7, 0.0, -16.4);
 
 globalvar define[] availableHeroes = [
-
+    Hero.Ana,
+    Hero.Ashe,
+    Hero.Bastion,
+    Hero.Baptiste,
+    Hero.Roadhog,
+    Hero.Junkrat,
+    Hero.Mccree,
+    Hero.Mei,
+    Hero.Winston,
+    Hero.Widowmaker,
+    Hero.Tracer,
+    Hero.Zarya
 ];
 
 // Player Variables
@@ -34,16 +45,14 @@ Event.OnPlayerJoin
 {
     DisableGameModeHud(EventPlayer());
     DisableKillFeed(EventPlayer());
-    //DisableMessages(EventPlayer());
     DisableSpectate(EventPlayer());
     DisableHeroHud(EventPlayer())
     DisableSpectateHUD(EventPlayer());
     EnableNameplates(EventPlayer());
     DisableRespawning(EventPlayer());
     DisableScoreboard(EventPlayer());
-    //SetUltimateAbilityEnabled(EventPlayer(), false);
+    SetUltimateAbilityEnabled(EventPlayer(), false);
     SetMeleeEnabled(EventPlayer(), false);
-    //SetCrouchEnabled(EventPlayer(), false);
     SetReloadEnabled(EventPlayer(), false);
     SetAbility1Enabled(EventPlayer(), false);
     SetAbility2Enabled(EventPlayer(), false);
@@ -52,8 +61,35 @@ Event.OnPlayerJoin
     SetJumpEnabled(EventPlayer(), false);
     SetDamageReceived(EventPlayer(), 0);
     SetMoveSpeed(EventPlayer(), 0);
+}
 
+rule: "Player: Initialization"
+Event.OngoingPlayer
+if (gameState == GameState.Lobby)
+{
+    EventPlayer().originalHero = availableHeroes[SlotOf(EventPlayer())];
+    ForcePlayerHero(EventPlayer(), EventPlayer().originalHero);
+}
+
+rule: "Player: State Start"
+Event.OngoingPlayer
+if (gameState == GameState.Start)
+{
+    EventPlayer().originalHero = availableHeroes[SlotOf(EventPlayer())];
+    ForcePlayerHero(EventPlayer(), EventPlayer().originalHero);
     createPlayerPip(EventPlayer(), SlotOf(EventPlayer()));
+    if (EventPlayer().role == PlayerRole.IMPOSTER) {
+        CreateEffect(
+            VisibleTo: FilteredArray(AllPlayers(), ArrayElement().role == PlayerRole.IMPOSTER && ArrayElement() != EventPlayer()),
+            Type: Effect.BadAura,
+            Color: Color.Red,
+            Radius: 1,
+            Reevaluation: EffectRev.VisibleToPositionAndRadius,
+            Position: EyePosition(EventPlayer())
+        );
+    }
+    putPlayerInCircle(EventPlayer());
+    assignTasks(EventPlayer(), NumTasks.Value);
 }
 
 define respawnLocation: Vector(-199.46, 1.01, -7.59);
@@ -215,7 +251,6 @@ if (playing)
 if (!EventPlayer().isAlive)
 {
     BigMessage(EventPlayer(), "Killed!");
-    EventPlayer().originalHero = HeroOf(EventPlayer());
     DisableMovementCollisionWithPlayers(EventPlayer());
     SetInvisible(EventPlayer(), InvisibleTo.All);
     ForcePlayerHero(EventPlayer(), Hero.Zenyatta);
@@ -272,13 +307,6 @@ if (DistanceBetween(EventPlayer(), EmergencyButtonLocation) < 5)
     EventPlayer().hasButtonPress = false;
     BigMessage(EventPlayer(), <"<0> Called Emergency Meeting!", SafePlayerName(EventPlayer())>);
     StartVotingRound();
-}
-
-rule: "Player: Initialization"
-Event.OngoingPlayer
-if (gameState == GameState.Lobby)
-{
-    EventPlayer().originalHero = HeroOf(EventPlayer());
 }
 
 rule: "Player: Render Corpse"

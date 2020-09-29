@@ -47,7 +47,7 @@ void RenderVoting() "Voting Menu: Render Voting" {
     for (define i = 0; i < recordedVotes.Length; i += 2) {
         renderedVoting = <"<0>\n<1> Voted",
             renderedVoting,
-            IsDummyBot(recordedVotes[i]) ? HeroOf(recordedVotes[i]) : recordedVotes[i]
+            SafePlayerName(recordedVotes[i])
         >;
     }
 }
@@ -130,14 +130,14 @@ if (!votingStarted)
     votingOptions = [new MenuText("Select a Player to Kill")];
     foreach (define player in AllAlive()) {
         ModifyVariable(votingOptions, Operation.AppendToArray,
-            new VoteButton(<"<0>", IsDummyBot(player) ? HeroOf(player) : player>, player)
+            new VoteButton(<"<0>", SafePlayerName(player)>, player)
         );
     }
     ModifyVariable(votingOptions, Operation.AppendToArray, new VoteButton("Skip Vote", "Nobody"));
     ModifyVariable(votingOptions, Operation.AppendToArray, new MenuText("\nDead:\n"));
     foreach (define deadPlayer in AllGhosts()) {
         ModifyVariable(votingOptions, Operation.AppendToArray,
-            new MenuText(<"<0>", IsDummyBot(deadPlayer) ? deadPlayer.originalHero : deadPlayer>)
+            new MenuText(<"<0><1>", availablePips[SlotOf(deadPlayer)], IsDummyBot(deadPlayer) ? deadPlayer.originalHero : deadPlayer>)
         );
     }
 

@@ -1,9 +1,10 @@
 import "../main.ostw";
 
 globalvar define[] availablePips = [
-    "⚑",
     "■",
     "●",
+    "#",
+    "?",
     "★",
     "▲",
     "♥",
@@ -15,12 +16,6 @@ globalvar define[] availablePips = [
 ];
 
 playervar define pipTextId;
-
-rule: "Player Teardown"
-Event.OnPlayerLeave
-{
-    DestroyInWorldText(EventPlayer().pipTextId);
-}
 
 void createPlayerPip(ref define player, ref define slot) {
     switch (slot) {
@@ -68,7 +63,7 @@ void createPlayerPip(ref define player, ref define slot) {
                 TextColor: Color.Purple
             );
             break;
-        case 3:
+        case 4:
             CreateInWorldText(
                 VisibleTo: player.isAlive ? PlayersWithinRadius(player, 20) : false,
                 Header: availablePips[slot],
