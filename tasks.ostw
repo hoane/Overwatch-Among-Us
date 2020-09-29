@@ -1,14 +1,21 @@
 import "main.ostw";
 
+enum TaskEffect {
+    None,
+    Dance
+}
+
 class Task {
     public define Name;
     public Vector Position;
     public define Duration;
+    public define TaskEffect;
 
-    public Task(ref define name, ref Vector position, ref define duration) {
+    public Task(ref define name, ref Vector position, ref define duration, ref define taskEffect = TaskEffect.None) {
         this.Name = name;
         this.Position = position;
         this.Duration = duration;
+        this.TaskEffect = taskEffect;
     }
 
     void draw() {
@@ -22,7 +29,7 @@ class Task {
         );
         CreateInWorldText(
             VisibleTo: PlayersWithinRadius(this.Position, 3),
-            Header: <"<0>: (<1> Sec)", this.Name, this.Duration>,
+            Header: <"<0>: (<1> Sec<2>)", this.Name, this.Duration, this.TaskEffect == TaskEffect.None ? "" : " + Emote">,
             TextColor: Color.White,
             Position: this.Position,
             Scale: 4,
@@ -39,6 +46,12 @@ class Task {
             TextColor: Color.Green
         );
     }
+
+    void perform(ref define player) {
+        if (this.TaskEffect == TaskEffect.Dance) {
+            Communicate(player, Communication.EmoteUp);
+        }
+    }
 }
 
 globalvar Task[] global_tasks = [
@@ -49,7 +62,7 @@ globalvar Task[] global_tasks = [
     new Task("Take Out Trash", Vector(-161.5, 1.2, -48.2), 5.0),
     new Task("Weed The Garden", Vector(-253.54, -4.04, 5.57), 5.0),
     new Task("Fold Towels", Vector(-279.18, 0.5, 10.5), 5.0),
-    new Task("Perform A Dance Routine", Vector(-179.4, -3.5, -66.0), 8.0),
+    new Task("Perform A Dance Routine", Vector(-179.4, -3.5, -66.0), 3.0, TaskEffect.Dance),
     new Task("Unpack Boxes", Vector(-243.2, -0.5, 1.8), 8.0),
     new Task("Watch TV", Vector(-230.42, -0.48, 12.09), 8.0)
 ];

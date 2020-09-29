@@ -106,7 +106,7 @@ void RenderVotes() "Voting Menu: Render Votes" {
     playerToEject = isTie ? "Nobody" : (nobodyVotes >= maxVotes ? "Nobody" : maxVotesPlayer);
     renderedVotes = <"<0>\n\nEjecting <1>",
         renderedVotes,
-        SafePlayerName(playerToEject)
+        playerToEject == "Nobody" ? "Nobody" : SafePlayerName(playerToEject)
     >;
 }
 
@@ -116,7 +116,7 @@ if (!votingStarted)
 {
     DestroyAllHudText();
     AllPlayers().canKill = false;
-    AllPlayers().canReportCorpse = false;
+    AllPlayers().closestCorpse = null;
     AllPlayers().canTask = false;
     AllPlayers().hudInteractString = "";
     AllPlayers().hudReloadString = "";
@@ -252,8 +252,14 @@ if (recordedVotes.Length == CountOf(AllAlive()) * 2 || votingTimer == 0)
         );
     }
     Wait(2);
-    playerToEject.isAlive = false;
     DestroyAllHudText();
+
+    if (playerToEject.role == PlayerRole.FOOL) {
+        foolVictory();
+        return;
+    }
+
+    playerToEject.isAlive = false;
 
     foreach (define p in AllGhosts()) {
         SetInvisible(p, InvisibleTo.All);
@@ -261,7 +267,6 @@ if (recordedVotes.Length == CountOf(AllAlive()) * 2 || votingTimer == 0)
     }
 
     Wait(1);
-
     unpauseSabotage();
     gameState = GameState.Play;
 }

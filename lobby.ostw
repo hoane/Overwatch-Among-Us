@@ -11,7 +11,8 @@ globalvar NumberOption KillDistance = new NumberOption("Kill Distance", 1, 20, 5
 globalvar NumberOption SabotageCooldown = new NumberOption("Sabotage Cooldown", 5, 120, 10, 5, "");
 globalvar NumberOption NumBots = new NumberOption("Bot Count", 0, 9, 8, 1, "");
 globalvar NumberOption MoveSpeed = new NumberOption("Move Speed", 50, 300, 150, 10, "");
-globalvar NumberOption SetHostImposter = new NumberOption("Host Imposter", 0, 1, 0, 1, "");
+globalvar NumberOption ForceHostRole = new MultipleOption("Force Host Role", ["No", "Crew", "Imposter", "Fool"]);
+globalvar NumberOption FoolEnabled = new MultipleOption("Fool Enabled", ["No", "Yes", "Always"]);
 
 globalvar HostMenuOption[] options = [
     new ActionButton("Start Game", 0),
@@ -22,7 +23,8 @@ globalvar HostMenuOption[] options = [
     KillDistance,
     SabotageCooldown,
     MoveSpeed,
-    SetHostImposter,
+    FoolEnabled,
+    ForceHostRole,
     NumBots
 ];
 
@@ -152,6 +154,39 @@ class ActionButton : HostMenuOption {
             root.gameState = GameState.Start;
         }
     }
+}
+
+class MultipleOption : HostMenuOption {
+    public override define Controls: "Walk left or right to change the currently selected option.";
+    private define[] Options;
+    private override define ValueString: this.Options[this.Value];
+
+    public NumberOption(ref define name, ref define[] options) {
+        this.Name = name;
+        this.Options = options;
+    }
+
+    public override void OnSelect() {
+        Value = 0;
+        root.RenderOptions();
+    }
+
+    public override void OnLeft() {
+        this.Value = Max(this.Value - 1, 0);
+        root.RenderOptions();
+
+        Wait(0.25, WaitBehavior.AbortWhenFalse);
+        Loop();
+    }
+
+    public override void OnRight() {
+        Value = Min(Value + 1, Options.Length - 1);
+        root.RenderOptions();
+
+        Wait(0.25, WaitBehavior.AbortWhenFalse);
+        Loop();
+    }
+
 }
 
 class NumberOption : HostMenuOption {

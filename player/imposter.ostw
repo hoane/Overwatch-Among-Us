@@ -217,7 +217,7 @@ if (EventPlayer().role == PlayerRole.IMPOSTER)
     while (gameState == GameState.Play) {
         playerUpdate(EventPlayer());
         imposterUpdate(EventPlayer());
-        renderHudInteractString(EventPlayer());
+        renderUpdate(EventPlayer());
         Wait(TICK);
     }
 }

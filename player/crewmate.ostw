@@ -38,6 +38,8 @@ void updateCrewTaskProgress(ref define player) {
             Radius: 75
         );
 
+        player.interactableTask.perform(player);
+
         player.isTaskInProgress = false;
         StopChasingVariable(player.taskProgressTime);
         ModifyVariable(player.completeTasks, Operation.AppendToArray, player.interactableTask);
@@ -85,7 +87,7 @@ if (EventPlayer().role == PlayerRole.CREW)
     while (gameState == GameState.Play) {
         playerUpdate(EventPlayer());
         crewUpdate(EventPlayer());
-        renderHudInteractString(EventPlayer());
+        renderUpdate(EventPlayer());
         Wait(TICK);
     }
 }

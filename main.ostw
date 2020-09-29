@@ -32,6 +32,7 @@ globalvar define totalCompleteTaskCount;
 
 rule: "Global: Setup"
 {
+    DisableInspectorRecording();
     reset();
     DisableAnnouncer();
     DisableCompletion();
@@ -88,7 +89,7 @@ void reset() "Reset Game" {
     AllPlayers().completeTasks = EmptyArray();
     AllPlayers().canKill = false;
     AllPlayers().canVent = false;
-    AllPlayers().canReportCorpse = false;
+    AllPlayers().closestCorpse = null;
     AllPlayers().isTaskInProgress = false;
     AllPlayers().isVenting = false;
     AllPlayers().hasCorpse = false;
@@ -126,10 +127,23 @@ void endGame() "Play: End Game" {
     reset();
 }
 
+define renderImposterList() "Render Imposter List" {
+    define _renderedImposterList = "Imposter(s) were:\n";
+    foreach (define imp in FilteredArray(AllPlayers().role == PlayerRole.IMPOSTER)) {
+        _renderedImposterList = <"<0> <1>",
+            _renderedImposterList,
+            SafePlayerName(imp)
+        >;
+    }
+    return _renderedImposterList;
+}
+
 void imposterVictory() "Imposter Victory" {
+    BigMessage(AllPlayers(), "Imposters Win!");
+    define renderedImposterList = renderImposterList();
     CreateHudText(
         VisibleTo   : AllPlayers(),
-        Header      : "IMPOSTERS WIN!",
+        Header      : <"IMPOSTERS WIN!\n\n<0>", renderedImposterList>,
         HeaderColor : Color.Red,
         Location    : Location.Top,
         Spectators  : Spectators.VisibleAlways,
@@ -140,10 +154,26 @@ void imposterVictory() "Imposter Victory" {
 }
 
 void crewVictory() "Crew Victory" {
+    BigMessage(AllPlayers(), "Crewmates Win!");
+    define renderedImposterList = renderImposterList();
     CreateHudText(
         VisibleTo   : AllPlayers(),
-        Header      : "CREWMATES WIN!",
+        Header      : <"CREWMATES WIN!\n\n<0>", renderedImposterList>,
         HeaderColor : Color.Blue,
+        Location    : Location.Top,
+        Spectators  : Spectators.VisibleAlways,
+        Reevaluation: HudTextRev.None,
+        SortOrder   : 10
+    );
+    endGame();
+}
+
+void foolVictory() "Fool Victory" {
+    BigMessage(AllPlayers(), "Fool Wins!");
+    CreateHudText(
+        VisibleTo   : AllPlayers(),
+        Header      : <"FOOL WINS!\n\nFool was:\n<0>", SafePlayerName(FirstOf(FilteredArray(AllPlayers(), ArrayElement().role == PlayerRole.FOOL)))>,
+        HeaderColor : Color.Yellow,
         Location    : Location.Top,
         Spectators  : Spectators.VisibleAlways,
         Reevaluation: HudTextRev.None,
@@ -157,7 +187,7 @@ void checkEndGame() "Play: Check End Game" {
         if (totalCompleteTaskCount >= totalTaskCount || CountOf(AllAliveImposters()) == 0) {
             crewVictory();
         }
-        if (CountOf(AllAliveImposters()) >= CountOf(AllAliveCrew())) {
+        if ((2 * CountOf(AllAliveImposters())) >= CountOf(AllAlive())) {
             imposterVictory();
         }
     }

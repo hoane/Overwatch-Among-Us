@@ -2,7 +2,9 @@ import "../main.ostw";
 
 enum PlayerRole {
     CREW,
-    IMPOSTER
+    IMPOSTER,
+    FOOL
+    
 }
 
 globalvar Vector circleCenter = Vector(-208.7, 0.0, -16.4);
@@ -32,7 +34,6 @@ playervar Task[] completeTasks = EmptyArray();
 playervar Corpse closestCorpse;
 playervar Corpse corpse;
 playervar define hasCorpse = false;
-playervar define canReportCorpse = false;
 playervar define originalHero;
 playervar define closestSabotage;
 playervar define hasButtonPress = true;
@@ -116,8 +117,16 @@ void assignRoles(ref define imposters) {
     AllPlayers().role = PlayerRole.CREW;
     ChooseArray(AllPlayers(), imposters).role = PlayerRole.IMPOSTER;
 
-    if (SetHostImposter.Value > 0) {
+    if (ForceHostRole.Value == 1) {
+        HostPlayer().role = PlayerRole.CREW;
+    } else if (ForceHostRole.Value == 2) {
         HostPlayer().role = PlayerRole.IMPOSTER;
+    } else if (ForceHostRole.Value == 3) {
+        HostPlayer().role = PlayerRole.FOOL;
+    }
+
+    if (FoolEnabled.Value == 2 || (FoolEnabled.Value == 1 && RandomReal(0, 1) <= 0.5)) {
+        FirstOf(AllAliveCrew()).role = PlayerRole.FOOL;
     }
 }
 
@@ -174,7 +183,6 @@ void debugUpdate(ref define player) {
 /* Find the nearest task to the crew member.
  */
 void findCrewNearestTask(ref define player) {
-    player.hudInteractString = "";
     // Find first incomplete task within 3 meters
     for (define i=0; i < player.incompleteTasks.Length; i++) {
         if (DistanceBetween(player, player.incompleteTasks[i].Position) <= 3) {
@@ -188,9 +196,9 @@ void findCrewNearestTask(ref define player) {
 
 /* Find the nearest corpse or button and check if it is near enough to be reportable.
  */
-void findNearestReportable(ref define player) {
+define findNearestReportable(ref define player) {
     define closestCorpseDistance = 10.0;
-    define _closestCorpse;
+    define _closestCorpse = null;
     foreach (define p in FilteredArray(AllPlayers(), ArrayElement().hasCorpse)) {
         define distance = DistanceBetween(player, p.corpse.Position);
         if (distance <= closestCorpseDistance) {
@@ -198,35 +206,42 @@ void findNearestReportable(ref define player) {
             closestCorpseDistance = distance;
         }
     }
-
-    if (closestCorpseDistance <= 5.0) {
-        player.closestCorpse = _closestCorpse;
-        player.canReportCorpse = true;
-    }
+    debugHudString = closestCorpseDistance;
+    return closestCorpseDistance <= 7.0 ? _closestCorpse : null;
 }
 
 /* Per-tick state update for all players, crew and imposters
  */
-void playerUpdate(ref define player) {
-    findNearestReportable(player);
-    renderHudReloadString(player);
+void playerUpdate(define player) "Player State Update" {
+    player.closestCorpse = findNearestReportable(player);
     player.closestSabotage = getNearestSabotageLocation(player);
     debugUpdate(player);
 }
 
-void renderHudInteractString(ref define player) {
-    if (player.closestSabotage != null) {
-        player.hudInteractString = sabotageInteractString
+void renderUpdate(define player) "Player Render Update" {
+    player.hudInteractString = renderHudInteractString(player);
+    player.hudReloadString = renderHudReloadString(player);
+}
+
+define renderHudInteractString(ref define player) {
+    if (player.closestSabotage != null && player.isAlive && !player.isVenting) {
+        return sabotageInteractString;
+    } else if (player.canTask) {
+        return player.interactableTask.Name;
+    } else {
+        return "";
     }
 }
 
-void renderHudReloadString(ref define player) {
-    if (player.canReportCorpse) {
-        player.hudReloadString = "Report Dead Player";
+define renderHudReloadString(ref define player) {
+    if (!player.isAlive || player.isVenting) {
+        return "";
+    } else if (player.closestCorpse != null) {
+        return "Report";
     } else if (DistanceBetween(player, EmergencyButtonLocation) < InteractRadius) {
-        player.hudReloadString = "Call Emergency Meeting";
+        return "Call Emergency Meeting";
     } else {
-        player.hudReloadString = "";
+        return "";
     }
 }
 
@@ -276,12 +291,12 @@ if (gameState == GameState.Play)
 if (playing)
 if (IsButtonHeld(EventPlayer(), Button.Reload))
 if (EventPlayer().isAlive)
-if (EventPlayer().canReportCorpse)
+if (EventPlayer().closestCorpse != null)
 if (!EventPlayer().isVenting)
 {
     CleanUpSabotage();
     BigMessage(EventPlayer(), <"<0> Reported Dead Player!", SafePlayerName(EventPlayer())>);
-    EventPlayer().canReportCorpse = false;
+    EventPlayer().closestCorpse = null;
 
     foreach (define p in FilteredArray(AllPlayers(), ArrayElement().hasCorpse)) {
         DestroyEffect(p.corpse.EntityId);
@@ -301,7 +316,7 @@ if (IsButtonHeld(EventPlayer(), Button.Reload))
 if (EventPlayer().hasButtonPress)
 if (EventPlayer().isAlive)
 if (!EventPlayer().isVenting)
-if (!EventPlayer().canReportCorpse)
+if (EventPlayer().closestCorpse == null)
 if (DistanceBetween(EventPlayer(), EmergencyButtonLocation) < 5)
 {
     EventPlayer().hasButtonPress = false;

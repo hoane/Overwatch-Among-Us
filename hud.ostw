@@ -1,5 +1,7 @@
 import "main.ostw";
 
+globalvar define debugHudString = "";
+
 void drawGlobalHUD() {
     CreateHudText(
         VisibleTo   : AllPlayers(),
@@ -23,7 +25,7 @@ void drawGlobalHUD() {
 
     CreateHudText(
         VisibleTo  : FilteredArray(AllPlayers(), ArrayElement().role == PlayerRole.CREW),
-        Header     : "CREWMATE",
+        Header     : "You are a Crewmate.\nComplete tasks to win.",
         HeaderColor: Color.SkyBlue,
         Location   : Location.Right,
         SortOrder  : 0,
@@ -33,8 +35,18 @@ void drawGlobalHUD() {
 
     CreateHudText(
         VisibleTo  : FilteredArray(AllPlayers(), ArrayElement().role == PlayerRole.IMPOSTER),
-        Header     : "IMPOSTER",
+        Header     : "You are an Imposter.\nKill the crew to win.",
         HeaderColor: Color.Red,
+        Location   : Location.Right,
+        SortOrder  : 0,
+        Spectators : Spectators.VisibleNever,
+        Reevaluation: HudTextRev.None
+    );
+
+    CreateHudText(
+        VisibleTo  : FilteredArray(AllPlayers(), ArrayElement().role == PlayerRole.FOOL),
+        Header     : "You are the Fool.\nGet Ejected in a vote to win.",
+        HeaderColor: Color.Yellow,
         Location   : Location.Right,
         SortOrder  : 0,
         Spectators : Spectators.VisibleNever,
@@ -98,6 +110,16 @@ void drawGlobalHUD() {
         Reevaluation: HudTextRev.VisibleToAndString,
         SortOrder   : 5
     );
+
+    CreateHudText(
+        VisibleTo   : AllPlayers(),
+        Text        : <"Debug: <0>", debugHudString>,
+        TextColor   : Color.White,
+        Location    : Location.Top,
+        Spectators  : Spectators.VisibleNever,
+        Reevaluation: HudTextRev.String,
+        SortOrder   : 6
+    );
 }
 
 void drawPlayerHUD(ref define player) {
@@ -158,18 +180,4 @@ void drawPlayerHUD(ref define player) {
         Reevaluation: HudTextRev.VisibleToAndString,
         SortOrder   : 2
     );
-/*
-    CreateHudText(
-        VisibleTo   : player,
-        Text        : <"Debug: InC: <0> / C: <1>\nState: <2>\ncl crew: <3>, CanKill: <4>\nKill#: <5>\ncl corp: <6>, CanRep: <7>",
-                  player.incompleteTasks.Length, player.completeTasks.Length, gameState,
-                  DistanceBetween(PositionOf(player), PositionOf(player.closestCrew)), player.canKill,
-                  player.killCount, DistanceBetween(PositionOf(player), PositionOf(player.closestCorpse)), player.canReportCorpse>,
-        TextColor   : Color.White,
-        Location    : Location.Top,
-        Spectators  : Spectators.VisibleNever,
-        Reevaluation: HudTextRev.VisibleToAndString,
-        SortOrder   : 3
-    );
-    */
 }
