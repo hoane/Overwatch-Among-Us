@@ -19,7 +19,7 @@
 - [x] skipped voting has extra comma
 - [x] don't let dead players move selector - removed voting menu for dead players
 - [x] need to recalculate comms on comm sabotage end
-- [ ] check if can force emote for dance routine
+- [x] check if can force emote for dance routine
 - [ ] maybe wallhacks as vent or sabotage
 - [ ] add venting animation
 - [x] Sabotage '!' are hard to see

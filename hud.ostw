@@ -111,6 +111,7 @@ void drawGlobalHUD() {
         SortOrder   : 5
     );
 
+/* DEBUG
     CreateHudText(
         VisibleTo   : AllPlayers(),
         Text        : <"Debug: <0>", debugHudString>,
@@ -120,6 +121,7 @@ void drawGlobalHUD() {
         Reevaluation: HudTextRev.String,
         SortOrder   : 6
     );
+*/
 }
 
 void drawPlayerHUD(ref define player) {

@@ -23,9 +23,9 @@ globalvar HostMenuOption[] options = [
     KillDistance,
     SabotageCooldown,
     MoveSpeed,
-    FoolEnabled,
-    ForceHostRole,
-    NumBots
+    //DEBUG: NumBots,
+    //DEBUG: ForceHostRole,
+    FoolEnabled
 ];
 
 void RenderOptions() "Host Menu: Render Options"
