@@ -127,24 +127,12 @@ void endGame() "Play: End Game" {
     reset();
 }
 
-define renderImposterList() "Render Imposter List" {
-    define _renderedImposterList = "Imposter(s) were:\n";
-    foreach (define imp in FilteredArray(AllPlayers().role == PlayerRole.IMPOSTER)) {
-        _renderedImposterList = <"<0> <1><2>",
-            _renderedImposterList,
-            availablePips[SlotOf(imp)],
-            IsDummyBot(imp) ? imp.originalHero : imp
-        >;
-    }
-    return _renderedImposterList;
-}
 
 void imposterVictory() "Imposter Victory" {
     BigMessage(AllPlayers(), "Imposters Win!");
-    define renderedImposterList = renderImposterList();
     CreateHudText(
         VisibleTo   : AllPlayers(),
-        Header      : <"IMPOSTERS WIN!\n\n<0>", renderedImposterList>,
+        Header      : "IMPOSTERS WIN!",
         HeaderColor : Color.Red,
         Location    : Location.Top,
         Spectators  : Spectators.VisibleAlways,
@@ -156,10 +144,9 @@ void imposterVictory() "Imposter Victory" {
 
 void crewVictory() "Crew Victory" {
     BigMessage(AllPlayers(), "Crewmates Win!");
-    define renderedImposterList = renderImposterList();
     CreateHudText(
         VisibleTo   : AllPlayers(),
-        Header      : <"CREWMATES WIN!\n\n<0>", renderedImposterList>,
+        Header      : "CREWMATES WIN!",
         HeaderColor : Color.Blue,
         Location    : Location.Top,
         Spectators  : Spectators.VisibleAlways,
@@ -173,7 +160,7 @@ void foolVictory() "Fool Victory" {
     BigMessage(AllPlayers(), "Fool Wins!");
     CreateHudText(
         VisibleTo   : AllPlayers(),
-        Header      : <"FOOL WINS!\n\nFool was:\n<0>", SafePlayerName(FirstOf(FilteredArray(AllPlayers(), ArrayElement().role == PlayerRole.FOOL)))>,
+        Header      : "FOOL WINS!",
         HeaderColor : Color.Yellow,
         Location    : Location.Top,
         Spectators  : Spectators.VisibleAlways,
