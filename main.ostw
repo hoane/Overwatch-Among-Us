@@ -45,7 +45,6 @@ rule: "Global: State Start"
 if (gameState == GameState.Start)
 {
     playing = true;
-    markCenter();
     drawTasks();
     drawVents();
     drawEmergencyButton();
@@ -64,7 +63,7 @@ if (gameState == GameState.Start)
             Color: Color.Red,
             Radius: 1,
             Reevaluation: EffectRev.VisibleToPositionAndRadius,
-            Position: PositionOf(EventPlayer())
+            Position: EyePosition(EventPlayer())
         );
     }
     putPlayerInCircle(EventPlayer());
@@ -76,6 +75,9 @@ if (gameState == GameState.Play)
 {
     checkEndGame();
     drawGlobalHUD();
+    SetMoveSpeed(FilteredArray(AllPlayers(), ArrayElement().isAlive), MoveSpeed.Value);
+    SetMoveSpeed(FilteredArray(AllPlayers(), !ArrayElement().isAlive), 2 * MoveSpeed.Value);
+    StopForcingThrottle(AllPlayers());
 }
 
 rule: "Player: State Play"
@@ -85,9 +87,7 @@ if (gameState == GameState.Play) {
     updateHudStrings(EventPlayer());
     resetSabotage();
 
-    SetMoveSpeed(FilteredArray(AllPlayers(), ArrayElement().isAlive), MoveSpeed.Value);
-    SetMoveSpeed(FilteredArray(AllPlayers(), !ArrayElement().isAlive), 2 * MoveSpeed.Value);
-    StopForcingThrottle(AllPlayers());
+    DestroyEffect(EventPlayer().deathAura);
 }
 
 rule: "Start"

@@ -14,10 +14,12 @@
 - [x] can't do tasks during sabotage - could not repro
 - [ ] still see emergency meeting prompt while comms are down
 - [ ] still see report prompt as ghost
-- [ ] add dead players to meeting with aura
+- [x] add dead players to meeting with aura
 - [ ] hero names alongside player name
-- [ ] skipped voting has extra comma
-- [ ] don't let dead players move selector
+- [x] skipped voting has extra comma
+- [x] don't let dead players move selector - removed voting menu for dead players
 - [ ] need to recalculate comms on comm sabotage end
 - [ ] check if can force emote for dance routine
 - [ ] maybe wallhacks as vent or sabotage
+- [ ] add venting animation
+- [ ] Sabotage '!' are hard to see

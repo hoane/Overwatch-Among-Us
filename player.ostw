@@ -59,12 +59,6 @@ Event.OnDeath
     Teleport(EventPlayer(), respawnLocation);
 }
 
-/* Puts an orb in the center of the map.
- */
-void markCenter() {
-    CreateEffect(AllPlayers(), Effect.Sphere, Color.Aqua, circleCenter, 1, EffectRev.None);
-}
-
 /* Calculates a position on the edge of a circle based on its center, radius, and the target 'slot' of the circle.
  */
 Vector circlePosition(Vector center, ref define slot, ref define totalSlots, define radius) {

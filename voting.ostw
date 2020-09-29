@@ -10,8 +10,9 @@ globalvar define playerToEject;
 globalvar define forbidVoting;
 
 playervar define renderedVotingMenu = "";
-playervar define votingMenuSelected = 0;
+playervar define votingMenuSelected;
 playervar define voted = false;
+playervar define deathAura;
 
 define secretLocation: Vector(-143, -3, -100);
 
@@ -19,6 +20,7 @@ void StartVotingRound() "Voting: Start Voting" {
     SetMoveSpeed(AllPlayers(), 0);
     Teleport(FilteredArray(AllPlayers(), ArrayElement().isVenting), secretLocation);
     AllPlayers().isVenting = false;
+
     SetMoveSpeed(AllPlayers(), 0);
     Wait(1);
     SetMoveSpeed(AllPlayers(), 0);
@@ -69,7 +71,7 @@ void RenderVotes() "Voting Menu: Render Votes" {
             votersByPlayer[k] = <"<0> <1>", votersByPlayer[k], SafePlayerName(recordedVotes[i])>;
         } else {
             nobodyVotes++;
-            nobodyVoters = <"<0>, <1>", nobodyVoters, SafePlayerName(recordedVotes[i])>
+            nobodyVoters = <"<0> <1>", nobodyVoters, SafePlayerName(recordedVotes[i])>
         }
     }
 
@@ -119,10 +121,24 @@ if (!votingStarted)
     AllPlayers().hudReloadString = "";
     AllPlayers().renderedVotingMenu = "";
     AllPlayers().voted = false;
-    AllPlayers().votingMenuSelected = 0;
+    AllPlayers().votingMenuSelected = 1;
     recordedVotes = EmptyArray();
     renderedVotes = "";
     renderedVoting = "";
+
+    foreach (define p in AllGhosts()) {
+        SetInvisible(p, InvisibleTo.None);
+        ForcePlayerHero(p, p.originalHero);
+        CreateEffect(
+            VisibleTo: AllPlayers(),
+            Position: EyePosition(p),
+            Type: Effect.GoodAura,
+            Color: Color.White,
+            Reevaluation: EffectRev.None,
+            Radius: 1
+        );
+        p.deathAura = LastCreatedEntity();
+    }
 
     votingOptions = [new MenuText("Select a Player to Kill")];
     foreach (define player in AllAlive()) {
@@ -164,27 +180,38 @@ if (votingStarted)
     RenderVotingOptions(EventPlayer());
     putPlayerInCircle(EventPlayer());
 
-    CreateHudText(
-        VisibleTo: EventPlayer(),
-        Header: EventPlayer().renderedVotingMenu,
-        HeaderColor: Color.White,
-        Text: renderedVoting,
-        TextColor: Color.Blue,
-        Location: Location.Top,
-        SortOrder: 2,
-        Spectators: Spectators.VisibleNever,
-        Reevaluation: HudTextRev.String
-    );
-
-    CreateHudText(
-        VisibleTo: EventPlayer(),
-        Text: votingOptions[EventPlayer().votingMenuSelected].Controls,
-        TextColor: Color.White,
-        Location: Location.Top,
-        SortOrder: 2,
-        Spectators: Spectators.VisibleNever,
-        Reevaluation: HudTextRev.String
-    );
+    if (EventPlayer().isAlive) {
+        CreateHudText(
+            VisibleTo: EventPlayer(),
+            Header: EventPlayer().renderedVotingMenu,
+            HeaderColor: Color.White,
+            Text: renderedVoting,
+            TextColor: Color.Blue,
+            Location: Location.Top,
+            SortOrder: 2,
+            Spectators: Spectators.VisibleNever,
+            Reevaluation: HudTextRev.String
+        );
+        CreateHudText(
+            VisibleTo: EventPlayer(),
+            Text: votingOptions[EventPlayer().votingMenuSelected].Controls,
+            TextColor: Color.White,
+            Location: Location.Top,
+            SortOrder: 2,
+            Spectators: Spectators.VisibleNever,
+            Reevaluation: HudTextRev.String
+        );
+    } else {
+        CreateHudText(
+            VisibleTo: EventPlayer(),
+            Header: "Voting In Progress",
+            HeaderColor: Color.White,
+            Location: Location.Top,
+            SortOrder: 2,
+            Spectators: Spectators.VisibleNever,
+            Reevaluation: HudTextRev.String
+        );
+    }
 }
 
 rule: "Global: Voting: Votes Complete"
@@ -211,16 +238,27 @@ if (recordedVotes.Length == CountOf(AllAlive()) * 2 || votingTimer == 0)
 
     Wait(5);
     if (playerToEject != "Nobody") {
-        playerToEject.isAlive = false;
         PlayEffect(
             VisibleTo: AllPlayers(),
             Type: PlayEffect.ExplosionSound,
             Position: PositionOf(playerToEject),
             Radius: 200
         );
+        ApplyImpulse(
+            Player: playerToEject,
+            Direction: DirectionTowards(playerToEject, circleCenter + Vector(0, 5, 0)),
+            Speed: 21
+        );
     }
-    Wait(3);
+    Wait(2);
+    playerToEject.isAlive = false;
     DestroyAllHudText();
+
+    foreach (define p in AllGhosts()) {
+        SetInvisible(p, InvisibleTo.All);
+        ForcePlayerHero(p, Hero.Zenyatta);
+    }
+
     Wait(0.5);
 
     gameState = GameState.Play;
@@ -251,7 +289,7 @@ if (!EventPlayer().voted)
 if (ThrottleOf(EventPlayer()).Z > 0)
 {
     EventPlayer().votingMenuSelected--;
-    if (EventPlayer().votingMenuSelected < 1) EventPlayer().votingMenuSelected = votingOptions.Length - 1;
+    if (EventPlayer().votingMenuSelected < 1) EventPlayer().votingMenuSelected = CountOf(AllAlive()) + 1;
     RenderVotingOptions(EventPlayer());
 }
 
@@ -263,7 +301,7 @@ if (!EventPlayer().voted)
 if (ThrottleOf(EventPlayer()).Z < 0)
 {
     EventPlayer().votingMenuSelected++;
-    if (EventPlayer().votingMenuSelected >= votingOptions.Length) EventPlayer().votingMenuSelected = 0;
+    if (EventPlayer().votingMenuSelected >= CountOf(AllAlive()) + 1) EventPlayer().votingMenuSelected = 1;
     RenderVotingOptions(EventPlayer());
 }
 
