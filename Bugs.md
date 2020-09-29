@@ -18,8 +18,16 @@
 - [ ] hero names alongside player name
 - [x] skipped voting has extra comma
 - [x] don't let dead players move selector - removed voting menu for dead players
-- [ ] need to recalculate comms on comm sabotage end
+- [x] need to recalculate comms on comm sabotage end
 - [ ] check if can force emote for dance routine
 - [ ] maybe wallhacks as vent or sabotage
 - [ ] add venting animation
-- [ ] Sabotage '!' are hard to see
+- [x] Sabotage '!' are hard to see
+- [?] death auras are broke
+- [?] move the vote selector off the first player at start of vote
+- [?] Sabotage + report body doesn't stop sabotage timer
+- [ ] last player to be voted off stays as zenyatta
+- [ ] all bodys should disappear after voting
+- [ ] force players to be unique heros
+- [ ] add reporting signifier
+- [x] add color pips

@@ -144,6 +144,7 @@ class ActionButton : HostMenuOption {
     public override void OnSelect()
     {
         if (Action == 0) {
+            BigMessage(AllPlayers(), "Starting Game...");
             root.spawnBots(root.NumBots.Value);
             DestroyAllHudText();
             if (root.NumBots.Value > 0) {

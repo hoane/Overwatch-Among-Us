@@ -1,4 +1,4 @@
-import "main.ostw";
+import "../main.ostw";
 
 enum PlayerRole {
     CREW,
@@ -6,6 +6,10 @@ enum PlayerRole {
 }
 
 globalvar Vector circleCenter = Vector(-208.7, 0.0, -16.4);
+
+globalvar define[] availableHeroes = [
+
+];
 
 // Player Variables
 playervar PlayerRole role;
@@ -30,7 +34,7 @@ Event.OnPlayerJoin
 {
     DisableGameModeHud(EventPlayer());
     DisableKillFeed(EventPlayer());
-    DisableMessages(EventPlayer());
+    //DisableMessages(EventPlayer());
     DisableSpectate(EventPlayer());
     DisableHeroHud(EventPlayer())
     DisableSpectateHUD(EventPlayer());
@@ -48,6 +52,8 @@ Event.OnPlayerJoin
     SetJumpEnabled(EventPlayer(), false);
     SetDamageReceived(EventPlayer(), 0);
     SetMoveSpeed(EventPlayer(), 0);
+
+    createPlayerPip(EventPlayer(), SlotOf(EventPlayer()));
 }
 
 define respawnLocation: Vector(-199.46, 1.01, -7.59);
@@ -208,6 +214,7 @@ if (gameState == GameState.Play || gameState == GameState.Voting)
 if (playing)
 if (!EventPlayer().isAlive)
 {
+    BigMessage(EventPlayer(), "Killed!");
     EventPlayer().originalHero = HeroOf(EventPlayer());
     DisableMovementCollisionWithPlayers(EventPlayer());
     SetInvisible(EventPlayer(), InvisibleTo.All);
@@ -238,10 +245,14 @@ if (EventPlayer().canReportCorpse)
 if (!EventPlayer().isVenting)
 {
     CleanUpSabotage();
+    BigMessage(EventPlayer(), <"<0> Reported Dead Player!", SafePlayerName(EventPlayer())>);
     EventPlayer().canReportCorpse = false;
-    DestroyEffect(EventPlayer().closestCorpse.EntityId);
-    DestroyInWorldText(EventPlayer().closestCorpse.TextId);
-    EventPlayer().closestCorpse.Player.hasCorpse = false;
+
+    foreach (define p in FilteredArray(AllPlayers(), ArrayElement().hasCorpse)) {
+        DestroyEffect(p.corpse.EntityId);
+        DestroyInWorldText(p.corpse.TextId);
+    }
+    AllPlayers().hasCorpse = false;
 
     StartVotingRound();
 }
@@ -259,6 +270,7 @@ if (!EventPlayer().canReportCorpse)
 if (DistanceBetween(EventPlayer(), EmergencyButtonLocation) < 5)
 {
     EventPlayer().hasButtonPress = false;
+    BigMessage(EventPlayer(), <"<0> Called Emergency Meeting!", SafePlayerName(EventPlayer())>);
     StartVotingRound();
 }
 
@@ -293,11 +305,4 @@ if (EventPlayer().hasCorpse)
     );
     EventPlayer().corpse.TextId = LastTextID();
 
-}
-
-rule: "Player: Destroy Corpse"
-Event.OngoingPlayer
-if (!EventPlayer().hasCorpse)
-{
-    
 }

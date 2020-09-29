@@ -17,6 +17,7 @@ playervar define deathAura;
 define secretLocation: Vector(-143, -3, -100);
 
 void StartVotingRound() "Voting: Start Voting" {
+    pauseSabotage();
     SetMoveSpeed(AllPlayers(), 0);
     Teleport(FilteredArray(AllPlayers(), ArrayElement().isVenting), secretLocation);
     AllPlayers().isVenting = false;
@@ -121,24 +122,10 @@ if (!votingStarted)
     AllPlayers().hudReloadString = "";
     AllPlayers().renderedVotingMenu = "";
     AllPlayers().voted = false;
-    AllPlayers().votingMenuSelected = 1;
+    AllPlayers().votingMenuSelected = 0;
     recordedVotes = EmptyArray();
     renderedVotes = "";
     renderedVoting = "";
-
-    foreach (define p in AllGhosts()) {
-        SetInvisible(p, InvisibleTo.None);
-        ForcePlayerHero(p, p.originalHero);
-        CreateEffect(
-            VisibleTo: AllPlayers(),
-            Position: EyePosition(p),
-            Type: Effect.GoodAura,
-            Color: Color.White,
-            Reevaluation: EffectRev.None,
-            Radius: 1
-        );
-        p.deathAura = LastCreatedEntity();
-    }
 
     votingOptions = [new MenuText("Select a Player to Kill")];
     foreach (define player in AllAlive()) {
@@ -160,6 +147,20 @@ if (!votingStarted)
     ChaseVariableAtRate(votingTimer, 0, 1, RateChaseReevaluation.None);
     votingStarted = true;
     forbidVoting = false;
+
+    foreach (define p in AllGhosts()) {
+        SetInvisible(p, InvisibleTo.None);
+        ForcePlayerHero(p, p.originalHero);
+        CreateEffect(
+            VisibleTo: AllPlayers(),
+            Position: EyePosition(p),
+            Type: Effect.GoodAura,
+            Color: Color.White,
+            Reevaluation: EffectRev.PositionAndRadius,
+            Radius: 1
+        );
+        p.deathAura = LastCreatedEntity();
+    }
 
     CreateHudText(
         VisibleTo: AllPlayers(),
@@ -204,7 +205,7 @@ if (votingStarted)
     } else {
         CreateHudText(
             VisibleTo: EventPlayer(),
-            Header: "Voting In Progress",
+            Header: "You are Dead: Voting In Progress",
             HeaderColor: Color.White,
             Location: Location.Top,
             SortOrder: 2,
@@ -259,8 +260,9 @@ if (recordedVotes.Length == CountOf(AllAlive()) * 2 || votingTimer == 0)
         ForcePlayerHero(p, Hero.Zenyatta);
     }
 
-    Wait(0.5);
+    Wait(1);
 
+    unpauseSabotage();
     gameState = GameState.Play;
 }
 

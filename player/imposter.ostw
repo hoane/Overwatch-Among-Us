@@ -1,4 +1,4 @@
-import "main.ostw";
+import "../main.ostw";
 
 // Imposter variables
 playervar define closestCrew;

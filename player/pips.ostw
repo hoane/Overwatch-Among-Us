@@ -1,0 +1,150 @@
+import "../main.ostw";
+
+globalvar define[] availablePips = [
+    "⚑",
+    "■",
+    "●",
+    "★",
+    "▲",
+    "♥",
+    "♠",
+    "♣",
+    "+",
+    "×",
+    "Ω"
+];
+
+playervar define pipTextId;
+
+rule: "Player Teardown"
+Event.OnPlayerLeave
+{
+    DestroyInWorldText(EventPlayer().pipTextId);
+}
+
+void createPlayerPip(ref define player, ref define slot) {
+    switch (slot) {
+        case 0:
+            CreateInWorldText(
+                VisibleTo: player.isAlive ? PlayersWithinRadius(player, 20) : false,
+                Header: availablePips[slot],
+                Position: EventPlayer(),
+                Scale: 3,
+                Clipping: Clipping.ClipAgainstSurfaces,
+                Reevaluation: InworldTextRev.VisibleToAndPosition,
+                TextColor: Color.Aqua
+            );
+            break;
+        case 1:
+            CreateInWorldText(
+                VisibleTo: player.isAlive ? PlayersWithinRadius(player, 20) : false,
+                Header: availablePips[slot],
+                Position: EventPlayer(),
+                Scale: 3,
+                Clipping: Clipping.ClipAgainstSurfaces,
+                Reevaluation: InworldTextRev.VisibleToAndPosition,
+                TextColor: Color.Green
+            );
+            break;
+        case 2:
+            CreateInWorldText(
+                VisibleTo: player.isAlive ? PlayersWithinRadius(player, 20) : false,
+                Header: availablePips[slot],
+                Position: EventPlayer(),
+                Scale: 3,
+                Clipping: Clipping.ClipAgainstSurfaces,
+                Reevaluation: InworldTextRev.VisibleToAndPosition,
+                TextColor: Color.Orange
+            );
+            break;
+        case 3:
+            CreateInWorldText(
+                VisibleTo: player.isAlive ? PlayersWithinRadius(player, 20) : false,
+                Header: availablePips[slot],
+                Position: EventPlayer(),
+                Scale: 3,
+                Clipping: Clipping.ClipAgainstSurfaces,
+                Reevaluation: InworldTextRev.VisibleToAndPosition,
+                TextColor: Color.Purple
+            );
+            break;
+        case 3:
+            CreateInWorldText(
+                VisibleTo: player.isAlive ? PlayersWithinRadius(player, 20) : false,
+                Header: availablePips[slot],
+                Position: EventPlayer(),
+                Scale: 3,
+                Clipping: Clipping.ClipAgainstSurfaces,
+                Reevaluation: InworldTextRev.VisibleToAndPosition,
+                TextColor: Color.Red
+            );
+            break;
+        case 5:
+            CreateInWorldText(
+                VisibleTo: player.isAlive ? PlayersWithinRadius(player, 20) : false,
+                Header: availablePips[slot],
+                Position: EventPlayer(),
+                Scale: 3,
+                Clipping: Clipping.ClipAgainstSurfaces,
+                Reevaluation: InworldTextRev.VisibleToAndPosition,
+                TextColor: Color.Blue
+            );
+            break;
+        case 6:
+            CreateInWorldText(
+                VisibleTo: player.isAlive ? PlayersWithinRadius(player, 20) : false,
+                Header: availablePips[slot],
+                Position: EventPlayer(),
+                Scale: 3,
+                Clipping: Clipping.ClipAgainstSurfaces,
+                Reevaluation: InworldTextRev.VisibleToAndPosition,
+                TextColor: Color.Turquoise
+            );
+            break;
+        case 7:
+            CreateInWorldText(
+                VisibleTo: player.isAlive ? PlayersWithinRadius(player, 20) : false,
+                Header: availablePips[slot],
+                Position: EventPlayer(),
+                Scale: 3,
+                Clipping: Clipping.ClipAgainstSurfaces,
+                Reevaluation: InworldTextRev.VisibleToAndPosition,
+                TextColor: Color.White
+            );
+            break;
+        case 1:
+            CreateInWorldText(
+                VisibleTo: player.isAlive ? PlayersWithinRadius(player, 20) : false,
+                Header: availablePips[slot],
+                Position: EventPlayer(),
+                Scale: 3,
+                Clipping: Clipping.ClipAgainstSurfaces,
+                Reevaluation: InworldTextRev.VisibleToAndPosition,
+                TextColor: Color.Yellow
+            );
+            break;
+        case 8:
+            CreateInWorldText(
+                VisibleTo: player.isAlive ? PlayersWithinRadius(player, 20) : false,
+                Header: availablePips[slot],
+                Position: EventPlayer(),
+                Scale: 3,
+                Clipping: Clipping.ClipAgainstSurfaces,
+                Reevaluation: InworldTextRev.VisibleToAndPosition,
+                TextColor: Color.LimeGreen
+            );
+            break;
+        case 9:
+            CreateInWorldText(
+                VisibleTo: player.isAlive ? PlayersWithinRadius(player, 20) : false,
+                Header: availablePips[slot],
+                Position: EventPlayer(),
+                Scale: 3,
+                Clipping: Clipping.ClipAgainstSurfaces,
+                Reevaluation: InworldTextRev.VisibleToAndPosition,
+                TextColor: Color.SkyBlue
+            );
+            break;
+    }
+    player.pipTextId = LastTextID();
+}

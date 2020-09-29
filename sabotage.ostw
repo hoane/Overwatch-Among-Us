@@ -157,6 +157,7 @@ globalvar define[] sabotageEntityIds;
 globalvar define[] sabotageTextIds;
 
 void StartSabotageEvent() {
+    BigMessage(AllPlayers(), "Sabotage!");
     if (sabotageInProgress == SabotageType.OverloadPower) {
         startPowerOverloadSabotageEvent();
     } else if (sabotageInProgress == SabotageType.DisableComms) {
@@ -180,6 +181,18 @@ void CleanUpSabotage() "Sabotage: Clean Up" {
     }
     sabotageEntityIds = [];
     sabotageTextIds = [];
+    foreach (define p in AllPlayers()) {
+        updateHudStrings(p);
+    }
+}
+
+void pauseSabotage() {
+    StopChasingVariable(sabotageInProgressValue);
+}
+
+void unpauseSabotage() {
+    StopChasingVariable(sabotageInProgressValue);
+    ChaseVariableAtRate(sabotageInProgressValue, 0, 1, RateChaseReevaluation.None);
 }
 
 define getNearestSabotageLocation(ref define player) {
@@ -267,7 +280,7 @@ void drawTransformerBox(ref define idx) {
 
     CreateInWorldText(
         VisibleTo: transformerBoxComplete[idx] ? EmptyArray() : FilteredArray(AllPlayers(), DistanceBetween(ArrayElement(), TransformerBoxes[idx]) > 5),
-        Header: "!",
+        Header: "▽",
         Position: TransformerBoxes[idx],
         Scale: 5,
         Clipping: Clipping.DoNotClip,
@@ -321,7 +334,7 @@ void drawCommunicationsHub() {
 
     CreateInWorldText(
         VisibleTo: FilteredArray(AllPlayers(), DistanceBetween(ArrayElement(), CommunicationsHub) > 5),
-        Header: "!",
+        Header: "▽",
         Position: CommunicationsHub,
         Scale: 5,
         Clipping: Clipping.DoNotClip,
