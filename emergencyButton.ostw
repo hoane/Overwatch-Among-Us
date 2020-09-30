@@ -7,7 +7,7 @@ void drawEmergencyButton() {
         VisibleTo: AllPlayers(),
         Position: EmergencyButtonLocation,
         Type: Effect.Orb,
-        Color: Color.Red,
+        Color: Color.Orange,
         Reevaluation: EffectRev.None,
         Radius: 0.5
     )

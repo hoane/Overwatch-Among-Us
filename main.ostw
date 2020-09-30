@@ -15,15 +15,17 @@ import "emergencyButton.ostw";
 import "sabotage.ostw";
 
 enum GameState {
+    Unknown,
     Waiting,
     Lobby,
     Start,
     Play,
-    Voting
+    Voting,
+    End
 }
 
 globalvar define TICK = 0.25;
-globalvar GameState gameState = GameState.Waiting;
+globalvar GameState gameState = GameState.Unknown;
 globalvar define totalTaskCount;
 globalvar define totalCompleteTaskCount;
 
@@ -93,11 +95,13 @@ void reset() "Reset Game" {
     totalCompleteTaskCount = 0;
 
     AllPlayers().isAlive = true;
+    gameState = GameState.Waiting;
 }
 
-void endGame() "Play: End Game" {
+rule: "Global: Game End State"
+if (gameState == GameState.End)
+{
     CleanUpSabotage();
-    gameState = GameState.Waiting;
     SetMoveSpeed(AllPlayers(), 0);
     Wait(4);
 
@@ -130,7 +134,7 @@ void imposterVictory() "Imposter Victory" {
         Reevaluation: HudTextRev.None,
         SortOrder   : 10
     );
-    endGame();
+    gameState = GameState.End;
 }
 
 void crewVictory() "Crew Victory" {
@@ -144,7 +148,7 @@ void crewVictory() "Crew Victory" {
         Reevaluation: HudTextRev.None,
         SortOrder   : 10
     );
-    endGame();
+    gameState = GameState.End;
 }
 
 void foolVictory() "Fool Victory" {
@@ -158,7 +162,7 @@ void foolVictory() "Fool Victory" {
         Reevaluation: HudTextRev.None,
         SortOrder   : 10
     );
-    endGame();
+    gameState = GameState.End;
 }
 
 void checkEndGame() "Play: Check End Game" {

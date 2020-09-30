@@ -327,7 +327,7 @@ if (EventPlayer().hasCorpse)
     CreateEffect(
         VisibleTo : AllPlayers(),
         Type      : Effect.Ring,
-        Color     : Color.Purple,
+        Color     : Color.Orange,
         Position  : EventPlayer().corpse.Position,
         Radius    : 1,
         Reevaluation: EffectRev.None
@@ -337,11 +337,11 @@ if (EventPlayer().hasCorpse)
     CreateInWorldText(
         VisibleTo : PlayersWithinRadius(EventPlayer().corpse.Position, 15),
         Header    : SafePlayerName(EventPlayer()),
+        TextColor : Color.Orange,
         Position  : EventPlayer().corpse.Position,
-        Scale     : 1.0,
+        Scale     : 2.0,
         Clipping  : Clipping.ClipAgainstSurfaces,
         Reevaluation: InworldTextRev.VisibleTo
     );
     EventPlayer().corpse.TextId = LastTextID();
-
 }

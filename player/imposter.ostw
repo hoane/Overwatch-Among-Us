@@ -46,7 +46,7 @@ void createImposterAura(ref define player) {
     CreateEffect(
         VisibleTo: FilteredArray(AllPlayers(), ArrayElement().role == PlayerRole.IMPOSTER && ArrayElement() != EventPlayer()),
         Type: Effect.BadAura,
-        Color: Color.Red,
+        Color: Color.Purple,
         Radius: 0.75,
         Reevaluation: EffectRev.VisibleToPositionAndRadius,
         Position: EyePosition(EventPlayer())

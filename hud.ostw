@@ -36,7 +36,7 @@ void drawGlobalHUD() {
     CreateHudText(
         VisibleTo  : FilteredArray(AllPlayers(), ArrayElement().role == PlayerRole.IMPOSTER),
         Header     : "You are an Imposter.\nKill the crew to win.",
-        HeaderColor: Color.Red,
+        HeaderColor: Color.Purple,
         Location   : Location.Right,
         SortOrder  : 0,
         Spectators : Spectators.VisibleNever,

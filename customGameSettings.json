@@ -40,7 +40,9 @@
     "Lobby": {
         "Max FFA Players": 10,
         "Match Voice Chat": true,
-        "Pause Game On Player Disconnect": true
+        "Pause Game On Player Disconnect": true,
+        "Allow Players Who Are In Queue": true,
+        "Return To Lobby": "Never"
     },
     "Description": "= Amongwatch =\n\nPlay Among Us in Overwatch!\n\nCreated by depth1stsearch (Brandon Hoane)\n\nhttps://github.com/hoane/Overwatch-Among-Us"
 }
