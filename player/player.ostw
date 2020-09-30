@@ -262,7 +262,6 @@ if (EventPlayer().isAlive)
 rule: "Player: !isAlive"
 Event.OngoingPlayer
 if (gameState == GameState.Play || gameState == GameState.Voting)
-if (playing)
 if (!EventPlayer().isAlive)
 {
     BigMessage(EventPlayer(), "Killed!");
@@ -275,7 +274,6 @@ if (!EventPlayer().isAlive)
 rule: "Player: Interact (Fix Sabotage)"
 Event.OngoingPlayer
 if (gameState == GameState.Play)
-if (playing)
 if (IsButtonHeld(EventPlayer(), Button.Interact))
 if (EventPlayer().isAlive)
 if (EventPlayer().closestSabotage != null)
@@ -288,7 +286,6 @@ if (!EventPlayer().isVenting)
 rule: "Player: Reload (Report Corpse)"
 Event.OngoingPlayer
 if (gameState == GameState.Play)
-if (playing)
 if (IsButtonHeld(EventPlayer(), Button.Reload))
 if (EventPlayer().isAlive)
 if (EventPlayer().closestCorpse != null)
@@ -310,7 +307,6 @@ if (!EventPlayer().isVenting)
 rule: "Player: Reload (Emergency Button)"
 Event.OngoingPlayer
 if (gameState == GameState.Play)
-if (playing)
 if (sabotageInProgress < 0)
 if (IsButtonHeld(EventPlayer(), Button.Reload))
 if (EventPlayer().hasButtonPress)

@@ -99,7 +99,6 @@ if (!IsButtonHeld(EventPlayer(), Button.Ultimate))
 rule: "Player: Imposter Interact (Vent)"
 Event.OngoingPlayer
 if (gameState == GameState.Play)
-if (playing)
 if (EventPlayer().role == PlayerRole.IMPOSTER)
 if (IsButtonHeld(EventPlayer(), Button.Interact))
 if (EventPlayer().canVent)
@@ -113,7 +112,6 @@ if (EventPlayer().canVent)
 rule: "Player: Imposter Venting"
 Event.OngoingPlayer
 if (gameState == GameState.Play)
-if (playing)
 if (EventPlayer().role == PlayerRole.IMPOSTER)
 if (EventPlayer().isAlive)
 if (EventPlayer().isVenting)
@@ -128,7 +126,6 @@ if (EventPlayer().isVenting)
 rule: "Player: Imposter UnVenting"
 Event.OngoingPlayer
 if (gameState == GameState.Play)
-if (playing)
 if (EventPlayer().role == PlayerRole.IMPOSTER)
 if (EventPlayer().isAlive)
 if (!EventPlayer().isVenting)
@@ -151,7 +148,6 @@ if (EventPlayer().killBeamEffectCountdown == 0)
 rule: "Player: Imposter Interact (Kill)"
 Event.OngoingPlayer
 if (gameState == GameState.Play)
-if (playing)
 if (EventPlayer().isAlive)
 if (EventPlayer().role == PlayerRole.IMPOSTER)
 if (IsButtonHeld(EventPlayer(), Button.PrimaryFire))
@@ -204,7 +200,6 @@ if (DistanceBetween(EventPlayer(), PlayerClosestToReticle(EventPlayer())) <= Kil
 rule: "Player: Imposter Update Loop"
 Event.OngoingPlayer
 if (gameState == GameState.Play)
-if (playing)
 if (EventPlayer().role == PlayerRole.IMPOSTER)
 {
     EventPlayer().killCooldown = KillCooldown.Value;

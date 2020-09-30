@@ -22,7 +22,6 @@ playervar define sabotageMenuTextId;
 rule: "Player: Imposter Ult (Sabotage)"
 Event.OngoingPlayer
 if (gameState == GameState.Play)
-if (playing)
 if (canSabotage)
 if (EventPlayer().role == PlayerRole.IMPOSTER)
 if (!EventPlayer().isSabotageMenuOpen)
@@ -221,7 +220,6 @@ void fixSabotageAt(ref Vector v) {
 
 rule: "Sabotage: Fail"
 if (gameState == GameState.Play)
-if (playing)
 if (sabotageInProgress == SabotageType.OverloadPower)
 if (sabotageInProgressValue == 0)
 {

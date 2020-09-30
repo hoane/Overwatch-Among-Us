@@ -53,7 +53,6 @@ void updateCrewTaskProgress(ref define player) {
 rule: "Player: Crew Interact (Task)"
 Event.OngoingPlayer
 if (gameState == GameState.Play)
-if (playing)
 if (EventPlayer().role == PlayerRole.CREW)
 if (IsButtonHeld(EventPlayer(), Button.Interact))
 if (EventPlayer().canTask)
@@ -67,7 +66,6 @@ if (EventPlayer().canTask)
 rule: "Player: DummyBot Crew Task Completion"
 Event.OngoingPlayer
 if (gameState == GameState.Play)
-if (playing)
 if (EventPlayer().role == PlayerRole.CREW)
 if (IsDummyBot(EventPlayer()))
 {
@@ -81,7 +79,6 @@ if (IsDummyBot(EventPlayer()))
 rule: "Player: Crew Update Loop"
 Event.OngoingPlayer
 if (gameState == GameState.Play)
-if (playing)
 if (EventPlayer().role == PlayerRole.CREW)
 {
     while (gameState == GameState.Play) {

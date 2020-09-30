@@ -122,6 +122,19 @@ void drawGlobalHUD() {
         SortOrder   : 6
     );
 */
+
+    CreateHudText(
+        VisibleTo: HostPlayer(),
+        Text: <"<0>: <1>\n<2>: <3>\n<4>: <5>\n",
+            "Server Load", ServerLoad(),
+            "Server Load Average", ServerLoadAverage(),
+            "Server Load Peak", ServerLoadPeak()
+        >,
+        TextColor: Color.White,
+        Location: Location.Left,
+        Reevaluation: HudTextRev.String,
+        SortOrder: 6
+    )
 }
 
 void drawPlayerHUD(ref define player) {

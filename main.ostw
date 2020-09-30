@@ -24,8 +24,6 @@ enum GameState {
 
 globalvar define TICK = 0.25;
 globalvar GameState gameState = GameState.Waiting;
-globalvar define started;
-globalvar define playing;
 globalvar define totalTaskCount;
 globalvar define totalCompleteTaskCount;
 
@@ -46,7 +44,6 @@ rule: "Global: Setup"
 rule: "Global: State Start"
 if (gameState == GameState.Start)
 {
-    playing = true;
     drawTasks();
     drawVents();
     drawEmergencyButton();
@@ -76,10 +73,8 @@ if (gameState == GameState.Play) {
 
 rule: "Start"
 if (gameState == GameState.Waiting)
-if (!started)
 if (IsTrueForAll(AllPlayers(), HasSpawned(ArrayElement()) || IsDead(ArrayElement())))
 {
-    started = true;
     Wait(2);
     gameState = GameState.Lobby;
 }
@@ -98,15 +93,11 @@ void reset() "Reset Game" {
     totalCompleteTaskCount = 0;
 
     AllPlayers().isAlive = true;
-
-    playing = false;
-    started = false;
 }
 
 void endGame() "Play: End Game" {
     CleanUpSabotage();
     gameState = GameState.Waiting;
-    playing = false;
     SetMoveSpeed(AllPlayers(), 0);
     Wait(4);
 
@@ -171,7 +162,7 @@ void foolVictory() "Fool Victory" {
 }
 
 void checkEndGame() "Play: Check End Game" {
-    if (playing) {
+    if (gameState == GameState.Play || gameState == GameState.Voting) {
         if (totalCompleteTaskCount >= totalTaskCount || CountOf(AllAliveImposters()) == 0) {
             crewVictory();
         }
