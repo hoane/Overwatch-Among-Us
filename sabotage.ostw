@@ -5,12 +5,14 @@ import "main.ostw";
 enum SabotageType {
     None = -1,
     OverloadPower = 0,
-    DisableComms = 1
+    DisableComms = 1,
+    WineShortage = 2
 }
 
 globalvar PlayerMenuOption[] sabotageOptions = [
     new MenuText("Select Sabotage"),
     new SabotageButton("Overload Power Transformers", 0, SabotageType.OverloadPower, 60),
+    new SabotageButton("Cause A Wine Shortage", 0, SabotageType.WineShortage, 60),
     new SabotageButton("Disable Communications", 0, SabotageType.DisableComms, 30)
 ];
 
@@ -36,9 +38,9 @@ if (IsButtonHeld(EventPlayer(), Button.Ultimate))
     CreateHudText(
         VisibleTo   : EventPlayer(),
         Header      : EventPlayer().renderedSabotageMenu,
-        HeaderColor : Color.Purple,
+        HeaderColor : Color.Red,
         Text        : sabotageOptions[EventPlayer().sabotageMenuSelected].Controls,
-        TextColor   : Color.Purple,
+        TextColor   : Color.Red,
         Location    : Location.Top,
         Spectators  : Spectators.VisibleNever,
         Reevaluation: HudTextRev.String,
@@ -140,8 +142,8 @@ class SabotageButton : PlayerMenuOption {
         ChaseVariableAtRate(root.sabotageCooldown, 0, 1, RateChaseReevaluation.None);
         SetMoveSpeed(root.MoveSpeed.Value);
 
+        BigMessage(AllPlayers(), "Sabotage!");
         root.sabotageInProgress = this.Sabotage;
-        root.StartSabotageEvent();
     }
 }
 
@@ -154,17 +156,6 @@ globalvar define sabotageInteractString = "";
 globalvar define[] sabotageLocations;
 globalvar define[] sabotageEntityIds;
 globalvar define[] sabotageTextIds;
-
-void StartSabotageEvent() {
-    BigMessage(AllPlayers(), "Sabotage!");
-    if (sabotageInProgress == SabotageType.OverloadPower) {
-        startPowerOverloadSabotageEvent();
-    } else if (sabotageInProgress == SabotageType.DisableComms) {
-        startDisableCommunicationsSabotageEvent();
-    } else {
-        sabotageInProgress = SabotageType.None;
-    }
-}
 
 void CleanUpSabotage() "Sabotage: Clean Up" {
     sabotageInProgress = -1;
@@ -220,7 +211,7 @@ void fixSabotageAt(ref Vector v) {
 
 rule: "Sabotage: Fail"
 if (gameState == GameState.Play)
-if (sabotageInProgress == SabotageType.OverloadPower)
+if (sabotageInProgress == SabotageType.OverloadPower || sabotageInProgress == SabotageType.WineShortage)
 if (sabotageInProgressValue == 0)
 {
     imposterVictory();
@@ -234,7 +225,9 @@ globalvar Vector[] TransformerBoxes = [
 ];
 globalvar define[] transformerBoxComplete;
 
-void startPowerOverloadSabotageEvent() {
+rule: "Start Sabotage: Power Overload"
+if (sabotageInProgress == SabotageType.OverloadPower)
+{
     sabotageInProgressHeader = "Power Overload: Reset Circuit Breakers!";
     sabotageInteractString = "Reset Circuit Breaker";
     StopChasingVariable(sabotageInProgressValue);
@@ -294,7 +287,7 @@ void drawTransformerBox(ref define idx) {
         Scale: 4,
         Clipping: Clipping.DoNotClip,
         Reevaluation: InworldTextRev.VisibleTo,
-        TextColor: Color.Red
+        TextColor: Color.Green
     );
     ModifyVariable(sabotageTextIds, Operation.AppendToArray, LastTextID());
 }
@@ -303,7 +296,9 @@ void drawTransformerBox(ref define idx) {
 
 globalvar Vector CommunicationsHub = Vector(-217.24, 2.0, 6.90);
 
-void startDisableCommunicationsSabotageEvent() {
+rule: "Start Sabotage: Disable Comms"
+if (sabotageInProgress == SabotageType.DisableComms)
+{
     sabotageInProgressHeader = "Communications Disabled: Reprogram Comms Hub!";
     sabotageInteractString = "Reprogram Comms Hub";
     sabotageLocations = [CommunicationsHub];
@@ -348,7 +343,7 @@ void drawCommunicationsHub() {
         Scale: 4,
         Clipping: Clipping.DoNotClip,
         Reevaluation: InworldTextRev.VisibleTo,
-        TextColor: Color.Red
+        TextColor: Color.White
     );
     ModifyVariable(sabotageTextIds, Operation.AppendToArray, LastTextID());
 }
@@ -361,4 +356,16 @@ void fixCommsAt(ref Vector v) {
         Radius: 100
     );
     CleanUpSabotage();
+}
+
+// Wine Shortage
+
+globalvar Vector[] wineRefillLocations = [
+    Vector(-214.23, 5, 0.72),
+    Vector(-191.42, 5, -22.43)
+];
+
+rule: "Start Sabotage: Disable Comms"
+if (sabotageInProgress == SabotageType.WineShortage)
+{
 }

@@ -25,13 +25,14 @@ void imposterUpdate(ref define player) {
 
 void createImposterTargetAura(ref define player) {
     CreateEffect(
-        VisibleTo: (player.isAlive && player.role == PlayerRole.IMPOSTER && DistanceBetween(player, PlayerClosestToReticle(player)) <= KillDistance.Value) ? player : EmptyArray(),
+        VisibleTo: (player.isAlive && player.role == PlayerRole.IMPOSTER && !player.isVenting && DistanceBetween(player, PlayerClosestToReticle(player)) <= KillDistance.Value) ? player : EmptyArray(),
         Type: Effect.GoodAura,
         Color: Color.Purple,
         Position: PlayerClosestToReticle(player),
         Radius: 0.75,
         Reevaluation: EffectRev.VisibleToPositionAndRadius
     );
+    /* Out-of-range aura
     CreateEffect(
         VisibleTo: (player.isAlive && player.role == PlayerRole.IMPOSTER && DistanceBetween(player, PlayerClosestToReticle(player)) > KillDistance.Value) ? player : EmptyArray(),
         Type: Effect.GoodAura,
@@ -40,6 +41,7 @@ void createImposterTargetAura(ref define player) {
         Radius: 0.75,
         Reevaluation: EffectRev.VisibleToPositionAndRadius
     );
+    */
 }
 
 void createImposterAura(ref define player) {

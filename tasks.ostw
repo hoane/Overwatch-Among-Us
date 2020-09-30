@@ -30,7 +30,7 @@ class Task {
         CreateInWorldText(
             VisibleTo: PlayersWithinRadius(this.Position, 3),
             Header: <"<0>: (<1> Sec<2>)", this.Name, this.Duration, this.TaskEffect == TaskEffect.None ? "" : " + Emote">,
-            TextColor: Color.White,
+            TextColor: Color.Green,
             Position: this.Position,
             Scale: 4,
             Clipping: Clipping.DoNotClip,

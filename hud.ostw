@@ -101,14 +101,52 @@ void drawGlobalHUD() {
 
     CreateHudText(
         VisibleTo   : FilteredArray(AllPlayers(), ArrayElement().role == PlayerRole.IMPOSTER),
-        Header      : InputBindingString(ButtonValue(Button.Ultimate)),
+        Header      : <"Sabotage Cooldown: <0>", RoundToInteger(sabotageCooldown, Rounding.Up)>,
+        HeaderColor : Color.Red,
+        Location    : Location.Top,
+        Spectators  : Spectators.VisibleNever,
+        Reevaluation: HudTextRev.VisibleToAndString,
+        SortOrder   : 6
+    );
+
+    CreateHudText(
+        VisibleTo   : FilteredArray(AllPlayers(), ArrayElement().role == PlayerRole.IMPOSTER),
+        Header      : <"<0> | Kill", InputBindingString(ButtonValue(Button.PrimaryFire))>,
         HeaderColor : Color.Purple,
-        Text        : canSabotage ? "Sabotage" : <"Cooldown: <0>", RoundToInteger(sabotageCooldown, Rounding.Up)>,
-        TextColor   : Color.Purple,
+        Location    : Location.Right,
+        Spectators  : Spectators.VisibleNever,
+        Reevaluation: HudTextRev.VisibleToAndString,
+        SortOrder   : 3
+    );
+
+    CreateHudText(
+        VisibleTo   : AllPlayers(),
+        Header      : <"<0> | Use", InputBindingString(ButtonValue(Button.Interact))>,
+        HeaderColor : Color.Green,
+        Location    : Location.Right,
+        Spectators  : Spectators.VisibleNever,
+        Reevaluation: HudTextRev.VisibleToAndString,
+        SortOrder   : 4
+    );
+
+    CreateHudText(
+        VisibleTo   : AllPlayers(),
+        Header      : <"<0> | Report", InputBindingString(ButtonValue(Button.Reload))>,
+        HeaderColor : Color.Orange,
         Location    : Location.Right,
         Spectators  : Spectators.VisibleNever,
         Reevaluation: HudTextRev.VisibleToAndString,
         SortOrder   : 5
+    );
+
+    CreateHudText(
+        VisibleTo   : FilteredArray(AllPlayers(), ArrayElement().role == PlayerRole.IMPOSTER),
+        Header      : <"<0> | Sabotage", InputBindingString(ButtonValue(Button.Ultimate))>,
+        HeaderColor : Color.Red,
+        Location    : Location.Right,
+        Spectators  : Spectators.VisibleNever,
+        Reevaluation: HudTextRev.VisibleToAndString,
+        SortOrder   : 6
     );
 
 /* DEBUG
@@ -150,30 +188,6 @@ void drawPlayerHUD(ref define player) {
         Spectators  : Spectators.VisibleNever,
         Reevaluation: HudTextRev.String,
         SortOrder   : 2
-    );
-
-    CreateHudText(
-        VisibleTo   : player,
-        Header      : InputBindingString(ButtonValue(Button.Interact)),
-        HeaderColor : Color.Green,
-        Text        : player.hudInteractString,
-        TextColor   : Color.Green,
-        Location    : Location.Right,
-        Spectators  : Spectators.VisibleNever,
-        Reevaluation: HudTextRev.VisibleToAndString,
-        SortOrder   : 3
-    );
-
-    CreateHudText(
-        VisibleTo   : player,
-        Header      : InputBindingString(ButtonValue(Button.Reload)),
-        HeaderColor : Color.Orange,
-        Text        : player.hudReloadString,
-        TextColor   : Color.Orange,
-        Location    : Location.Right,
-        Spectators  : Spectators.VisibleNever,
-        Reevaluation: HudTextRev.VisibleToAndString,
-        SortOrder   : 4
     );
 
     CreateHudText(

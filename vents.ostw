@@ -1,5 +1,7 @@
 import "main.ostw";
 
+define VentInteractRadius: 2.0;
+
 globalvar Vector[] global_vents = [
     Vector(-144.65, 1.0, -63.30), // East doorway first platform
     Vector(-252.49, 0.46, 45.27), // West doorway first platform
@@ -19,7 +21,16 @@ void drawVent(ref Vector v) {
         Reevaluation: EffectRev.None
     );
     CreateInWorldText(
-        VisibleTo: AllAliveImposters(),
+        VisibleTo: FilteredArray(PlayersWithinRadius(v, VentInteractRadius), ArrayElement().role == PlayerRole.IMPOSTER && ArrayElement().isAlive),
+        Header: "Use Vent",
+        TextColor: Color.Green,
+        Position: v,
+        Scale: 4,
+        Clipping: Clipping.DoNotClip,
+        Reevaluation: InworldTextRev.VisibleTo
+    );
+    CreateInWorldText(
+        VisibleTo: FilteredArray(AllAliveImposters(), DistanceBetween(ArrayElement(), v) > VentInteractRadius),
         Header: "▦",
         TextColor: Color.Purple,
         Position: v,
@@ -29,9 +40,11 @@ void drawVent(ref Vector v) {
     );
 }
 
-
 void drawVents() {
-    foreach (Vector v in global_vents) {
-        drawVent(v);
-    }
+    drawVent(global_vents[0]);
+    drawVent(global_vents[1]);
+    drawVent(global_vents[2]);
+    drawVent(global_vents[3]);
+    drawVent(global_vents[4]);
+    drawVent(global_vents[5]);
 }

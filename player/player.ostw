@@ -308,7 +308,7 @@ rule: "Player: Reload (Emergency Button)"
 Event.OngoingPlayer
 if (gameState == GameState.Play)
 if (sabotageInProgress < 0)
-if (IsButtonHeld(EventPlayer(), Button.Reload))
+if (IsButtonHeld(EventPlayer(), Button.Interact))
 if (EventPlayer().hasButtonPress)
 if (EventPlayer().isAlive)
 if (!EventPlayer().isVenting)
