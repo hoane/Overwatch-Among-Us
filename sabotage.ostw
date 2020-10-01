@@ -27,13 +27,13 @@ if (gameState == GameState.Play)
 if (canSabotage)
 if (EventPlayer().role == PlayerRole.IMPOSTER)
 if (!EventPlayer().isSabotageMenuOpen)
+if (sabotageInProgress == SabotageType.None)
 if (EventPlayer().releasedUlt)
 if (IsButtonHeld(EventPlayer(), Button.Ultimate))
 {
     EventPlayer().releasedUlt = false;
     EventPlayer().isSabotageMenuOpen = true;
     EventPlayer().sabotageMenuSelected = 1;
-    //SetMoveSpeed(EventPlayer(), 0);
 
     CreateHudText(
         VisibleTo   : EventPlayer(),
@@ -283,7 +283,6 @@ if (sabotageInProgress == SabotageType.DisableComms)
 {
     sabotageInProgressHeader = "Communications Disabled: Reprogram Comms Hub!";
     sabotageLocations = [CommunicationsHub];
-    ModifyVariable(sabotageLocations, Operation.AppendToArray, CommunicationsHub);
 
     StopChasingVariable(sabotageInProgressValue);
     sabotageInProgressValue = 0;
@@ -346,7 +345,61 @@ globalvar Vector[] wineRefillLocations = [
     Vector(-191.42, 5, -22.43)
 ];
 
-rule: "Start Sabotage: Disable Comms"
+rule: "Start Sabotage: Wine Shortage"
 if (sabotageInProgress == SabotageType.WineShortage)
 {
+    sabotageInProgressHeader = "Wine Shortage: Restock The Wine Together!";
+    sabotageLocations = wineRefillLocations;
+
+    StopChasingVariable(sabotageInProgressValue);
+    ChaseVariableAtRate(sabotageInProgressValue, 0, 1, RateChaseReevaluation.None);
+    sabotageInProgressValue = 60;
+
+    foreach (define p in AllPlayers()) {
+        updateHudStrings(p);
+    }
+
+    drawWineShortage(wineRefillLocations[0]);
+    drawWineShortage(wineRefillLocations[1]);
+}
+
+void drawWineShortage(define position) {
+    CreateEffect(
+        VisibleTo: AllPlayers(),
+        Type: Effect.Ring,
+        Color: Color.Red,
+        Position: position,
+        Radius: 1,
+        Reevaluation: EffectRev.None
+    );
+    ModifyVariable(sabotageEntityIds, Operation.AppendToArray, LastCreatedEntity());
+
+    CreateInWorldText(
+        VisibleTo: FilteredArray(AllPlayers(), DistanceBetween(ArrayElement(), position) > 5),
+        Header: "▽",
+        Position: position + Vector(0, 0.5, 0),
+        Scale: 5,
+        Clipping: Clipping.DoNotClip,
+        Reevaluation: InworldTextRev.VisibleTo,
+        TextColor: Color.Red
+    );
+    ModifyVariable(sabotageTextIds, Operation.AppendToArray, LastTextID());
+
+    CreateInWorldText(
+        VisibleTo: PlayersWithinRadius(position, 5),
+        Header: "Stand In Both Rings To Restock The Wine",
+        Position: position + Vector(0, 0.5, 0),
+        Scale: 4,
+        Clipping: Clipping.DoNotClip,
+        Reevaluation: InworldTextRev.VisibleTo,
+        TextColor: Color.Red
+    );
+    ModifyVariable(sabotageTextIds, Operation.AppendToArray, LastTextID());
+}
+
+rule: "Sabotage: Disable Comms: Detect Refill"
+if (sabotageInProgress == SabotageType.WineShortage)
+if (false)
+{
+
 }
