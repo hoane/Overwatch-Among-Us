@@ -16,7 +16,7 @@ playervar define voted = false;
 define secretLocation: Vector(-143, -3, -100);
 
 void StartVotingRound() "Voting: Start Voting" {
-    pauseSabotage();
+    CleanUpSabotage();
     SetMoveSpeed(AllPlayers(), 0);
     Teleport(FilteredArray(AllPlayers(), ArrayElement().isVenting), secretLocation);
     AllPlayers().isVenting = false;
@@ -255,7 +255,6 @@ if (recordedVotes.Length == CountOf(AllAlive()) * 2 || votingTimer == 0)
     }
 
     Wait(1);
-    unpauseSabotage();
     gameState = GameState.Play;
 }
 

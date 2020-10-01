@@ -149,7 +149,7 @@ class SabotageButton : PlayerMenuOption {
 
 // Sabotage Events
 
-globalvar define sabotageInProgress = -1;
+globalvar define sabotageInProgress = SabotageType.None;
 globalvar define sabotageInProgressHeader = "";
 globalvar define sabotageInProgressValue = "";
 globalvar define[] sabotageLocations;
@@ -157,10 +157,11 @@ globalvar define[] sabotageEntityIds;
 globalvar define[] sabotageTextIds;
 
 void CleanUpSabotage() "Sabotage: Clean Up" {
-    sabotageInProgress = -1;
+    sabotageInProgress = SabotageType.None;
     sabotageLocations = null;
     sabotageInProgressHeader = "";
     sabotageInProgressValue = "";
+    StopChasingVariable(sabotageInProgressValue);
 
     foreach (define id in sabotageEntityIds) {
         DestroyEffect(id);
@@ -349,11 +350,11 @@ rule: "Start Sabotage: Wine Shortage"
 if (sabotageInProgress == SabotageType.WineShortage)
 {
     sabotageInProgressHeader = "Wine Shortage: Restock The Wine Together!";
-    sabotageLocations = wineRefillLocations;
 
     StopChasingVariable(sabotageInProgressValue);
     ChaseVariableAtRate(sabotageInProgressValue, 0, 1, RateChaseReevaluation.None);
     sabotageInProgressValue = 60;
+    sabotageLocations = wineRefillLocations;
 
     foreach (define p in AllPlayers()) {
         updateHudStrings(p);
@@ -397,10 +398,11 @@ void drawWineShortage(define position) {
     ModifyVariable(sabotageTextIds, Operation.AppendToArray, LastTextID());
 }
 
-rule: "Sabotage: Disable Comms: Detect Refill"
+rule: "Sabotage: Wine Shortage: Detect Refill"
 if (sabotageInProgress == SabotageType.WineShortage)
 if (IsTrueForAny(AllPlayers(), ArrayElement().isAlive && !ArrayElement().isVenting && DistanceBetween(ArrayElement(), wineRefillLocations[0]) <= 3) && IsTrueForAny(AllPlayers(), ArrayElement().isAlive && !ArrayElement().isVenting && DistanceBetween(ArrayElement(), wineRefillLocations[1]) <= 3))
 {
+    //BigMessage(AllPlayers(), "END WINE SHORTAGE")
     PlayEffect(
         VisibleTo: AllPlayers(),
         Type: PlayEffect.RingExplosionSound,

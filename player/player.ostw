@@ -32,7 +32,6 @@ playervar Task[] completeTasks = EmptyArray();
 playervar Corpse corpse;
 playervar define hasCorpse = false;
 playervar define originalHero;
-playervar define closestSabotage;
 playervar define hasButtonPress = true;
 
 /* Initial setup for players.
@@ -87,7 +86,7 @@ if (gameState == GameState.Start)
 
 void createDeathAura(define player) {
     CreateEffect(
-        VisibleTo: (gameState == GameState.Voting && !player.isAlive) ? AllPlayers() : AllGhosts(),
+        VisibleTo: (gameState == GameState.Voting && !player.isAlive) ? AllPlayers() : (player.isAlive ? EmptyArray() : AllGhosts()),
         Position: player,
         Type: Effect.Cloud,
         Color: Color.White,
@@ -200,8 +199,7 @@ if (!EventPlayer().isVenting)
         return;
     }
 
-    fixSabotageAt(EventPlayer().closestSabotage);
-    EventPlayer().closestSabotage = null;
+    fixSabotageAt(FirstOf(targetSabotages));
 }
 
 rule: "Player: Reload (Report Corpse)"
@@ -218,28 +216,34 @@ if (!EventPlayer().isVenting)
     }
 
     CleanUpSabotage();
-    BigMessage(EventPlayer(), <"<0> Reported Dead Player!", SafePlayerName(EventPlayer())>);
+    BigMessage(AllPlayers(), <"<0> Reported Dead Player!", SafePlayerName(EventPlayer())>);
 
     foreach (define p in FilteredArray(AllPlayers(), ArrayElement().hasCorpse)) {
         DestroyEffect(p.corpse.EntityId);
         DestroyInWorldText(p.corpse.TextId);
     }
     AllPlayers().hasCorpse = false;
-
     StartVotingRound();
 }
 
 rule: "Player: Reload (Emergency Button)"
 Event.OngoingPlayer
 if (gameState == GameState.Play)
-if (sabotageInProgress < 0)
+if (sabotageInProgress == SabotageType.None)
 if (IsButtonHeld(EventPlayer(), Button.Interact))
 if (EventPlayer().hasButtonPress)
 if (EventPlayer().isAlive)
 if (!EventPlayer().isVenting)
+if (!EventPlayer().isSabotageMenuOpen)
 if (DistanceBetween(EventPlayer(), EmergencyButtonLocation) < 5)
 {
     EventPlayer().hasButtonPress = false;
-    BigMessage(EventPlayer(), <"<0> Called Emergency Meeting!", SafePlayerName(EventPlayer())>);
+    BigMessage(AllPlayers(), <"<0> Called Emergency Meeting!", SafePlayerName(EventPlayer())>);
+
+    foreach (define p in FilteredArray(AllPlayers(), ArrayElement().hasCorpse)) {
+        DestroyEffect(p.corpse.EntityId);
+        DestroyInWorldText(p.corpse.TextId);
+    }
+    AllPlayers().hasCorpse = false;
     StartVotingRound();
 }

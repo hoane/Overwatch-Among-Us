@@ -4,7 +4,7 @@ globalvar define[] availablePips = [
     "■",
     "●",
     "#",
-    "?",
+    "@",
     "★",
     "▲",
     "♥",

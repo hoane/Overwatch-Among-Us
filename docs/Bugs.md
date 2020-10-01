@@ -33,3 +33,6 @@
 - [x] add color pips
 - [x] targeting system for imposters
 - [x] report dead player isn't going away when walk away from body
+- [x] big message not appearing?
+- [x] clean up corpse on button push
+- [x] ghost sees all auras

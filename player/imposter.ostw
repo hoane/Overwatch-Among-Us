@@ -20,16 +20,6 @@ void createImposterTargetAura(ref define player) {
         Radius: 0.75,
         Reevaluation: EffectRev.VisibleToPositionAndRadius
     );
-    /* Out-of-range aura
-    CreateEffect(
-        VisibleTo: (player.isAlive && player.role == PlayerRole.IMPOSTER && DistanceBetween(player, PlayerClosestToReticle(player)) > KillDistance.Value) ? player : EmptyArray(),
-        Type: Effect.GoodAura,
-        Color: Color.White,
-        Position: PlayerClosestToReticle(player),
-        Radius: 0.75,
-        Reevaluation: EffectRev.VisibleToPositionAndRadius
-    );
-    */
 }
 
 void createImposterAura(ref define player) {
@@ -41,15 +31,6 @@ void createImposterAura(ref define player) {
         Reevaluation: EffectRev.VisibleToPositionAndRadius,
         Position: EyePosition(EventPlayer())
     );
-}
-
-define isVentNearby(ref define player) {
-    foreach (Vector v in global_vents) {
-        if (DistanceBetween(PositionOf(player), v) <= 2.0) {
-            return true;
-        }
-    }
-    return false;
 }
 
 /* If target player is alive, kill them and return true.
@@ -150,7 +131,7 @@ if (DistanceBetween(EventPlayer(), PlayerClosestToReticle(EventPlayer())) <= Kil
 {
     
     define killTarget = PlayerClosestToReticle(EventPlayer());
-    if (killTarget == null || !killTarget.isAlive || killTarget.role != PlayerRole.CREW) return;
+    if (killTarget == null || !killTarget.isAlive || killTarget.role == PlayerRole.IMPOSTER) return;
 
     CreateBeamEffect(
         VisibleTo: AllPlayers(),
