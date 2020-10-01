@@ -143,6 +143,7 @@ class SabotageButton : PlayerMenuOption {
         SetMoveSpeed(root.MoveSpeed.Value);
 
         BigMessage(AllPlayers(), "Sabotage!");
+        root.sabotageInProgressValue = 1;
         root.sabotageInProgress = this.Sabotage;
     }
 }
