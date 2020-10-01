@@ -4,63 +4,65 @@ import "../main.ostw";
 playervar define numTasks = 0;
 playervar define hudTaskString = "";
 playervar define hudCompleteTaskString = "";
-playervar define canTask = false;
-playervar Task interactableTask;
 playervar define isTaskInProgress = false;
+playervar Task taskInProgress;
 playervar define taskProgressTime;
-
-/* Per-tick update logic for crew.
- */
-void crewUpdate(ref define player) {
-    if (player.isTaskInProgress) {
-        updateCrewTaskProgress(player);
-    } else {
-        findCrewNearestTask(player);
-    }
-}
-
-/* Check if task progress may continue or if it should cancel or complete.
- */
-void updateCrewTaskProgress(ref define player) {
-    // Still near enough to task to work on it, and holding the button?
-    if (!IsButtonHeld(player, Button.Interact) || DistanceBetween(PositionOf(player), player.interactableTask.Position) > 3) {
-        player.isTaskInProgress = false;
-        StopChasingVariable(player.taskProgressTime);
-        return;
-    }
-    // If task done, move it to the complete list
-    if (player.taskProgressTime >= player.interactableTask.Duration) {
-
-        PlayEffect(
-            VisibleTo: player,
-            Type: PlayEffect.BuffImpactSound,
-            Position: player,
-            Radius: 75
-        );
-
-        player.interactableTask.perform(player);
-
-        player.isTaskInProgress = false;
-        StopChasingVariable(player.taskProgressTime);
-        ModifyVariable(player.completeTasks, Operation.AppendToArray, player.interactableTask);
-        ModifyVariable(player.incompleteTasks, Operation.RemoveFromArrayByValue, player.interactableTask);
-        totalCompleteTaskCount++;
-        updateHudStrings(player);
-        checkEndGame();
-    }
-}
 
 rule: "Player: Crew Interact (Task)"
 Event.OngoingPlayer
 if (gameState == GameState.Play)
+if (EventPlayer().isAlive)
 if (EventPlayer().role == PlayerRole.CREW)
 if (IsButtonHeld(EventPlayer(), Button.Interact))
-if (EventPlayer().canTask)
+if (!EventPlayer().isTaskInProgress)
 {
-    EventPlayer().canTask = false;
+    Task[] targetTasks = FilteredArray(global_tasks, EventPlayer().incompleteTasks.Contains(ArrayElement()) && DistanceBetween((<Task>ArrayElement()).Position, EventPlayer()) <= InteractRadius);
+    if (targetTasks.Length == 0) {
+        Wait(0.5);
+        return;
+    }
+
     EventPlayer().isTaskInProgress = true;
+    EventPlayer().taskInProgress = FirstOf(targetTasks);
     EventPlayer().taskProgressTime = 0;
-    ChaseVariableAtRate(EventPlayer().taskProgressTime, EventPlayer().interactableTask.Duration, 1.0, RateChaseReevaluation.None);
+    ChaseVariableAtRate(EventPlayer().taskProgressTime, EventPlayer().taskInProgress.Duration, 1.0, RateChaseReevaluation.None);
+}
+
+rule: "Player: Crew Cancel Task"
+Event.OngoingPlayer
+if (gameState == GameState.Play)
+if (EventPlayer().role == PlayerRole.CREW)
+if (EventPlayer().isTaskInProgress)
+if (!IsButtonHeld(EventPlayer(), Button.Interact) || DistanceBetween(EventPlayer().taskInProgress.Position, EventPlayer()) > InteractRadius)
+{
+    StopChasingVariable(EventPlayer().taskProgressTime);
+    EventPlayer().isTaskInProgress = false;
+}
+
+rule: "Player: Crew Complete Task"
+Event.OngoingPlayer
+if (gameState == GameState.Play)
+if (EventPlayer().role == PlayerRole.CREW)
+if (EventPlayer().isTaskInProgress)
+if (EventPlayer().taskProgressTime >= EventPlayer().taskInProgress.Duration)
+{
+    EventPlayer().isTaskInProgress = false;
+
+    PlayEffect(
+        VisibleTo: EventPlayer(),
+        Type: PlayEffect.BuffImpactSound,
+        Position: EventPlayer(),
+        Radius: 75
+    );
+
+    EventPlayer().taskInProgress.perform(EventPlayer());
+
+    StopChasingVariable(EventPlayer().taskProgressTime);
+    ModifyVariable(EventPlayer().completeTasks, Operation.AppendToArray, EventPlayer().taskInProgress);
+    ModifyVariable(EventPlayer().incompleteTasks, Operation.RemoveFromArrayByValue, EventPlayer().taskInProgress);
+    totalCompleteTaskCount++;
+    updateHudStrings(EventPlayer());
+    checkEndGame();
 }
 
 rule: "Player: DummyBot Crew Task Completion"
@@ -73,18 +75,5 @@ if (IsDummyBot(EventPlayer()))
         Wait(RandomInteger(15, 20), WaitBehavior.AbortWhenFalse);
         totalCompleteTaskCount++;
         checkEndGame();
-    }
-}
-
-rule: "Player: Crew Update Loop"
-Event.OngoingPlayer
-if (gameState == GameState.Play)
-if (EventPlayer().role == PlayerRole.CREW)
-{
-    while (gameState == GameState.Play) {
-        playerUpdate(EventPlayer());
-        crewUpdate(EventPlayer());
-        renderUpdate(EventPlayer());
-        Wait(TICK);
     }
 }

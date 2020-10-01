@@ -1,5 +1,7 @@
 import "main.ostw";
 
+define ReportRadius: 7.0;
+
 class Corpse {
     public define Player;
     public define Position;
@@ -10,4 +12,30 @@ class Corpse {
         this.Player = player;
         this.Position = position;
     }
+}
+
+rule: "Player: Render Corpse"
+Event.OngoingPlayer
+if (EventPlayer().hasCorpse)
+{
+    CreateEffect(
+        VisibleTo : AllPlayers(),
+        Type      : Effect.Ring,
+        Color     : Color.Orange,
+        Position  : EventPlayer().corpse.Position,
+        Radius    : 1,
+        Reevaluation: EffectRev.None
+    );
+    EventPlayer().corpse.EntityId = LastCreatedEntity();
+
+    CreateInWorldText(
+        VisibleTo : PlayersWithinRadius(EventPlayer().corpse.Position, ReportRadius),
+        Header    : SafePlayerName(EventPlayer()),
+        TextColor : Color.Orange,
+        Position  : EventPlayer().corpse.Position,
+        Scale     : 2.0,
+        Clipping  : Clipping.ClipAgainstSurfaces,
+        Reevaluation: InworldTextRev.VisibleTo
+    );
+    EventPlayer().corpse.TextId = LastTextID();
 }

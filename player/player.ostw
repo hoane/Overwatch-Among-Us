@@ -27,11 +27,8 @@ globalvar define[] availableHeroes = [
 // Player Variables
 playervar PlayerRole role;
 playervar define isAlive = true;
-playervar define hudInteractString = "";
-playervar define hudReloadString = "";
 playervar Task[] incompleteTasks;
 playervar Task[] completeTasks = EmptyArray();
-playervar Corpse closestCorpse;
 playervar Corpse corpse;
 playervar define hasCorpse = false;
 playervar define originalHero;
@@ -83,8 +80,20 @@ if (gameState == GameState.Start)
         createImposterAura(EventPlayer());
         createImposterTargetAura(EventPlayer());
     }
+    createDeathAura(EventPlayer());
     putPlayerInCircle(EventPlayer());
     assignTasks(EventPlayer(), NumTasks.Value);
+}
+
+void createDeathAura(define player) {
+    CreateEffect(
+        VisibleTo: (gameState == GameState.Voting && !player.isAlive) ? AllPlayers() : AllGhosts(),
+        Position: player,
+        Type: Effect.Cloud,
+        Color: Color.White,
+        Reevaluation: EffectRev.VisibleToPositionAndRadius,
+        Radius: 1
+    );
 }
 
 define respawnLocation: Vector(-199.46, 1.01, -7.59);
@@ -166,99 +175,6 @@ void updateHudStrings(ref define player) {
     }
 }
 
-/* Debug-only update logic.
- */
-void debugUpdate(ref define player) {
-    /*
-    if (IsButtonHeld(player, Button.Ultimate)) {
-        totalCompleteTaskCount += 5;
-        checkEndGame();
-    }
-    if (IsButtonHeld(player, Button.Ability1)) {
-        killPlayer(RandomValueInArray(AllAlive()));
-    }
-    */
-}
-
-/* Find the nearest task to the crew member.
- */
-void findCrewNearestTask(ref define player) {
-    // Find first incomplete task within 3 meters
-    for (define i=0; i < player.incompleteTasks.Length; i++) {
-        if (DistanceBetween(player, player.incompleteTasks[i].Position) <= 3) {
-            player.hudInteractString = player.incompleteTasks[i].Name;
-            player.interactableTask = player.incompleteTasks[i];
-            player.canTask = true;
-            return;
-        }
-    }
-}
-
-/* Find the nearest corpse or button and check if it is near enough to be reportable.
- */
-define findNearestReportable(ref define player) {
-    define closestCorpseDistance = 10.0;
-    define _closestCorpse = null;
-    foreach (define p in FilteredArray(AllPlayers(), ArrayElement().hasCorpse)) {
-        define distance = DistanceBetween(player, p.corpse.Position);
-        if (distance <= closestCorpseDistance) {
-            _closestCorpse = p.corpse;
-            closestCorpseDistance = distance;
-        }
-    }
-    debugHudString = closestCorpseDistance;
-    return closestCorpseDistance <= 7.0 ? _closestCorpse : null;
-}
-
-/* Per-tick state update for all players, crew and imposters
- */
-void playerUpdate(define player) "Player State Update" {
-    player.closestCorpse = findNearestReportable(player);
-    player.closestSabotage = getNearestSabotageLocation(player);
-    debugUpdate(player);
-}
-
-void renderUpdate(define player) "Player Render Update" {
-    player.hudInteractString = renderHudInteractString(player);
-    player.hudReloadString = renderHudReloadString(player);
-}
-
-define renderHudInteractString(ref define player) {
-    if (player.closestSabotage != null && player.isAlive && !player.isVenting) {
-        return sabotageInteractString;
-    } else if (player.canTask) {
-        return player.interactableTask.Name;
-    } else {
-        return "";
-    }
-}
-
-define renderHudReloadString(ref define player) {
-    if (!player.isAlive || player.isVenting) {
-        return "";
-    } else if (player.closestCorpse != null) {
-        return "Report";
-    } else if (DistanceBetween(player, EmergencyButtonLocation) < InteractRadius) {
-        return "Call Emergency Meeting";
-    } else {
-        return "";
-    }
-}
-
-/*
-rule: "Player: isAlive"
-Event.OngoingPlayer
-if (gameState == GameState.Play || gameState == GameState.Voting)
-if (playing)
-if (EventPlayer().isAlive)
-{
-    ForcePlayerHero(EventPlayer(), EventPlayer().originalHero);
-    EnableMovementCollisionWithPlayers(EventPlayer());
-    SetInvisible(EventPlayer(), InvisibleTo.None);
-    SetMoveSpeed(EventPlayer(), 100);
-}
-*/
-
 rule: "Player: !isAlive"
 Event.OngoingPlayer
 if (gameState == GameState.Play || gameState == GameState.Voting)
@@ -276,9 +192,14 @@ Event.OngoingPlayer
 if (gameState == GameState.Play)
 if (IsButtonHeld(EventPlayer(), Button.Interact))
 if (EventPlayer().isAlive)
-if (EventPlayer().closestSabotage != null)
 if (!EventPlayer().isVenting)
 {
+    define[] targetSabotages = FilteredArray(sabotageLocations, DistanceBetween(EventPlayer(), ArrayElement()) <= InteractRadius);
+    if (targetSabotages.Length == 0) {
+        Wait(0.5);
+        return;
+    }
+
     fixSabotageAt(EventPlayer().closestSabotage);
     EventPlayer().closestSabotage = null;
 }
@@ -288,12 +209,16 @@ Event.OngoingPlayer
 if (gameState == GameState.Play)
 if (IsButtonHeld(EventPlayer(), Button.Reload))
 if (EventPlayer().isAlive)
-if (EventPlayer().closestCorpse != null)
 if (!EventPlayer().isVenting)
 {
+    define[] targetCorpses = FilteredArray(AllPlayers(), ArrayElement().hasCorpse && DistanceBetween(EventPlayer(), ArrayElement().corpse.Position) <= 7.0);
+    if (targetCorpses.Length == 0) {
+        Wait(0.5);
+        return;
+    }
+
     CleanUpSabotage();
     BigMessage(EventPlayer(), <"<0> Reported Dead Player!", SafePlayerName(EventPlayer())>);
-    EventPlayer().closestCorpse = null;
 
     foreach (define p in FilteredArray(AllPlayers(), ArrayElement().hasCorpse)) {
         DestroyEffect(p.corpse.EntityId);
@@ -312,36 +237,9 @@ if (IsButtonHeld(EventPlayer(), Button.Interact))
 if (EventPlayer().hasButtonPress)
 if (EventPlayer().isAlive)
 if (!EventPlayer().isVenting)
-if (EventPlayer().closestCorpse == null)
 if (DistanceBetween(EventPlayer(), EmergencyButtonLocation) < 5)
 {
     EventPlayer().hasButtonPress = false;
     BigMessage(EventPlayer(), <"<0> Called Emergency Meeting!", SafePlayerName(EventPlayer())>);
     StartVotingRound();
-}
-
-rule: "Player: Render Corpse"
-Event.OngoingPlayer
-if (EventPlayer().hasCorpse)
-{
-    CreateEffect(
-        VisibleTo : AllPlayers(),
-        Type      : Effect.Ring,
-        Color     : Color.Orange,
-        Position  : EventPlayer().corpse.Position,
-        Radius    : 1,
-        Reevaluation: EffectRev.None
-    );
-    EventPlayer().corpse.EntityId = LastCreatedEntity();
-
-    CreateInWorldText(
-        VisibleTo : PlayersWithinRadius(EventPlayer().corpse.Position, 15),
-        Header    : SafePlayerName(EventPlayer()),
-        TextColor : Color.Orange,
-        Position  : EventPlayer().corpse.Position,
-        Scale     : 2.0,
-        Clipping  : Clipping.ClipAgainstSurfaces,
-        Reevaluation: InworldTextRev.VisibleTo
-    );
-    EventPlayer().corpse.TextId = LastTextID();
 }

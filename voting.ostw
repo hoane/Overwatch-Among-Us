@@ -12,7 +12,6 @@ globalvar define forbidVoting;
 playervar define renderedVotingMenu = "";
 playervar define votingMenuSelected;
 playervar define voted = false;
-playervar define deathAura;
 
 define secretLocation: Vector(-143, -3, -100);
 
@@ -115,11 +114,7 @@ if (gameState == GameState.Voting)
 if (!votingStarted)
 {
     DestroyAllHudText();
-    AllPlayers().canKill = false;
-    AllPlayers().closestCorpse = null;
-    AllPlayers().canTask = false;
-    AllPlayers().hudInteractString = "";
-    AllPlayers().hudReloadString = "";
+    AllPlayers().isTaskInProgress = false;
     AllPlayers().renderedVotingMenu = "";
     AllPlayers().voted = false;
     AllPlayers().votingMenuSelected = 0;
@@ -151,15 +146,6 @@ if (!votingStarted)
     foreach (define p in AllGhosts()) {
         SetInvisible(p, InvisibleTo.None);
         ForcePlayerHero(p, p.originalHero);
-        CreateEffect(
-            VisibleTo: AllPlayers(),
-            Position: EyePosition(p),
-            Type: Effect.GoodAura,
-            Color: Color.White,
-            Reevaluation: EffectRev.PositionAndRadius,
-            Radius: 1
-        );
-        p.deathAura = LastCreatedEntity();
     }
 
     CreateHudText(
@@ -180,6 +166,8 @@ if (votingStarted)
 {
     RenderVotingOptions(EventPlayer());
     putPlayerInCircle(EventPlayer());
+
+    Wait(1);
 
     if (EventPlayer().isAlive) {
         CreateHudText(
@@ -251,7 +239,7 @@ if (recordedVotes.Length == CountOf(AllAlive()) * 2 || votingTimer == 0)
             Speed: 21
         );
     }
-    Wait(2);
+    Wait(2.0);
     DestroyAllHudText();
 
     if (playerToEject.role == PlayerRole.FOOL) {

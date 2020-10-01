@@ -23,8 +23,8 @@ void drawVent(ref Vector v) {
     CreateInWorldText(
         VisibleTo: FilteredArray(PlayersWithinRadius(v, VentInteractRadius), ArrayElement().role == PlayerRole.IMPOSTER && ArrayElement().isAlive),
         Header: "Use Vent",
-        TextColor: Color.Green,
-        Position: v,
+        TextColor: Color.Purple,
+        Position: v + Vector(0, 0.5, 0),
         Scale: 4,
         Clipping: Clipping.DoNotClip,
         Reevaluation: InworldTextRev.VisibleTo
@@ -33,7 +33,7 @@ void drawVent(ref Vector v) {
         VisibleTo: FilteredArray(AllAliveImposters(), DistanceBetween(ArrayElement(), v) > VentInteractRadius),
         Header: "▦",
         TextColor: Color.Purple,
-        Position: v,
+        Position: v + Vector(0, 0.5, 0),
         Scale: 4,
         Clipping: Clipping.DoNotClip,
         Reevaluation: InworldTextRev.VisibleTo

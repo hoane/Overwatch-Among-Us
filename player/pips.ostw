@@ -21,7 +21,7 @@ void createPlayerPip(ref define player, ref define slot) {
     switch (slot) {
         case 0:
             CreateInWorldText(
-                VisibleTo: player.isAlive ? PlayersWithinRadius(player, 20) : false,
+                VisibleTo: (player.isAlive || gameState == GameState.Voting) && !IsCrouching(player) ? PlayersWithinRadius(player, 20) : false,
                 Header: availablePips[slot],
                 Position: EventPlayer(),
                 Scale: 3,
@@ -32,7 +32,7 @@ void createPlayerPip(ref define player, ref define slot) {
             break;
         case 1:
             CreateInWorldText(
-                VisibleTo: player.isAlive ? PlayersWithinRadius(player, 20) : false,
+                VisibleTo: (player.isAlive || gameState == GameState.Voting) && !IsCrouching(player) ? PlayersWithinRadius(player, 20) : false,
                 Header: availablePips[slot],
                 Position: EventPlayer(),
                 Scale: 3,
@@ -43,7 +43,7 @@ void createPlayerPip(ref define player, ref define slot) {
             break;
         case 2:
             CreateInWorldText(
-                VisibleTo: player.isAlive ? PlayersWithinRadius(player, 20) : false,
+                VisibleTo: (player.isAlive || gameState == GameState.Voting) && !IsCrouching(player) ? PlayersWithinRadius(player, 20) : false,
                 Header: availablePips[slot],
                 Position: EventPlayer(),
                 Scale: 3,
@@ -54,7 +54,7 @@ void createPlayerPip(ref define player, ref define slot) {
             break;
         case 3:
             CreateInWorldText(
-                VisibleTo: player.isAlive ? PlayersWithinRadius(player, 20) : false,
+                VisibleTo: (player.isAlive || gameState == GameState.Voting) && !IsCrouching(player) ? PlayersWithinRadius(player, 20) : false,
                 Header: availablePips[slot],
                 Position: EventPlayer(),
                 Scale: 3,
@@ -65,7 +65,7 @@ void createPlayerPip(ref define player, ref define slot) {
             break;
         case 4:
             CreateInWorldText(
-                VisibleTo: player.isAlive ? PlayersWithinRadius(player, 20) : false,
+                VisibleTo: (player.isAlive || gameState == GameState.Voting) && !IsCrouching(player) ? PlayersWithinRadius(player, 20) : false,
                 Header: availablePips[slot],
                 Position: EventPlayer(),
                 Scale: 3,
@@ -76,7 +76,7 @@ void createPlayerPip(ref define player, ref define slot) {
             break;
         case 5:
             CreateInWorldText(
-                VisibleTo: player.isAlive ? PlayersWithinRadius(player, 20) : false,
+                VisibleTo: (player.isAlive || gameState == GameState.Voting) && !IsCrouching(player) ? PlayersWithinRadius(player, 20) : false,
                 Header: availablePips[slot],
                 Position: EventPlayer(),
                 Scale: 3,
@@ -87,7 +87,7 @@ void createPlayerPip(ref define player, ref define slot) {
             break;
         case 6:
             CreateInWorldText(
-                VisibleTo: player.isAlive ? PlayersWithinRadius(player, 20) : false,
+                VisibleTo: (player.isAlive || gameState == GameState.Voting) && !IsCrouching(player) ? PlayersWithinRadius(player, 20) : false,
                 Header: availablePips[slot],
                 Position: EventPlayer(),
                 Scale: 3,
@@ -98,7 +98,7 @@ void createPlayerPip(ref define player, ref define slot) {
             break;
         case 7:
             CreateInWorldText(
-                VisibleTo: player.isAlive ? PlayersWithinRadius(player, 20) : false,
+                VisibleTo: (player.isAlive || gameState == GameState.Voting) && !IsCrouching(player) ? PlayersWithinRadius(player, 20) : false,
                 Header: availablePips[slot],
                 Position: EventPlayer(),
                 Scale: 3,
@@ -109,7 +109,7 @@ void createPlayerPip(ref define player, ref define slot) {
             break;
         case 1:
             CreateInWorldText(
-                VisibleTo: player.isAlive ? PlayersWithinRadius(player, 20) : false,
+                VisibleTo: (player.isAlive || gameState == GameState.Voting) && !IsCrouching(player) ? PlayersWithinRadius(player, 20) : false,
                 Header: availablePips[slot],
                 Position: EventPlayer(),
                 Scale: 3,
@@ -120,7 +120,7 @@ void createPlayerPip(ref define player, ref define slot) {
             break;
         case 8:
             CreateInWorldText(
-                VisibleTo: player.isAlive ? PlayersWithinRadius(player, 20) : false,
+                VisibleTo: (player.isAlive || gameState == GameState.Voting) && !IsCrouching(player) ? PlayersWithinRadius(player, 20) : false,
                 Header: availablePips[slot],
                 Position: EventPlayer(),
                 Scale: 3,
@@ -131,7 +131,7 @@ void createPlayerPip(ref define player, ref define slot) {
             break;
         case 9:
             CreateInWorldText(
-                VisibleTo: player.isAlive ? PlayersWithinRadius(player, 20) : false,
+                VisibleTo: (player.isAlive || gameState == GameState.Voting) && !IsCrouching(player) ? PlayersWithinRadius(player, 20) : false,
                 Header: availablePips[slot],
                 Position: EventPlayer(),
                 Scale: 3,

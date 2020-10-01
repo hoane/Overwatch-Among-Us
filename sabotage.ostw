@@ -152,7 +152,6 @@ class SabotageButton : PlayerMenuOption {
 globalvar define sabotageInProgress = -1;
 globalvar define sabotageInProgressHeader = "";
 globalvar define sabotageInProgressValue = "";
-globalvar define sabotageInteractString = "";
 globalvar define[] sabotageLocations;
 globalvar define[] sabotageEntityIds;
 globalvar define[] sabotageTextIds;
@@ -185,22 +184,6 @@ void unpauseSabotage() {
     ChaseVariableAtRate(sabotageInProgressValue, 0, 1, RateChaseReevaluation.None);
 }
 
-define getNearestSabotageLocation(ref define player) {
-    define closestSabotageDistance = 10.0;
-    define _closestSabotage = null;
-    if (sabotageInProgress >= 0) {
-        foreach (Vector v in sabotageLocations) {
-            define distance = DistanceBetween(player, v);
-            if (distance <= closestSabotageDistance) {
-                _closestSabotage = v;
-                closestSabotageDistance = distance;
-            }
-        }
-    }
-
-    return closestSabotageDistance <= 5 ? _closestSabotage : null;
-}
-
 void fixSabotageAt(ref Vector v) {
     if (sabotageInProgress == SabotageType.OverloadPower) {
         fixTransformerBoxAt(v);
@@ -229,7 +212,6 @@ rule: "Start Sabotage: Power Overload"
 if (sabotageInProgress == SabotageType.OverloadPower)
 {
     sabotageInProgressHeader = "Power Overload: Reset Circuit Breakers!";
-    sabotageInteractString = "Reset Circuit Breaker";
     StopChasingVariable(sabotageInProgressValue);
     ChaseVariableAtRate(sabotageInProgressValue, 0, 1, RateChaseReevaluation.None);
     sabotageInProgressValue = 60;
@@ -287,7 +269,7 @@ void drawTransformerBox(ref define idx) {
         Scale: 4,
         Clipping: Clipping.DoNotClip,
         Reevaluation: InworldTextRev.VisibleTo,
-        TextColor: Color.Green
+        TextColor: Color.Red
     );
     ModifyVariable(sabotageTextIds, Operation.AppendToArray, LastTextID());
 }
@@ -300,7 +282,6 @@ rule: "Start Sabotage: Disable Comms"
 if (sabotageInProgress == SabotageType.DisableComms)
 {
     sabotageInProgressHeader = "Communications Disabled: Reprogram Comms Hub!";
-    sabotageInteractString = "Reprogram Comms Hub";
     sabotageLocations = [CommunicationsHub];
     ModifyVariable(sabotageLocations, Operation.AppendToArray, CommunicationsHub);
 
@@ -343,7 +324,7 @@ void drawCommunicationsHub() {
         Scale: 4,
         Clipping: Clipping.DoNotClip,
         Reevaluation: InworldTextRev.VisibleTo,
-        TextColor: Color.White
+        TextColor: Color.Red
     );
     ModifyVariable(sabotageTextIds, Operation.AppendToArray, LastTextID());
 }

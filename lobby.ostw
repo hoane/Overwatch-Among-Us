@@ -21,12 +21,9 @@ globalvar HostMenuOption[] options = [
     NumTasks,
     KillCooldown,
     KillDistance,
-    //UNUSED: SabotageCooldown,
     MoveSpeed,
-    ///* DEBUG
     NumBots,
     ForceHostRole,
-    //*/
     FoolEnabled
 ];
 

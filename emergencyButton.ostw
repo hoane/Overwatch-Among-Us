@@ -7,14 +7,14 @@ void drawEmergencyButton() {
         VisibleTo: AllPlayers(),
         Position: EmergencyButtonLocation,
         Type: Effect.Orb,
-        Color: Color.Orange,
+        Color: Color.Red,
         Reevaluation: EffectRev.None,
         Radius: 0.5
     )
     CreateInWorldText(
         VisibleTo: FilteredArray(PlayersWithinRadius(EmergencyButtonLocation, InteractRadius), ArrayElement().isAlive && !ArrayElement().isVenting),
         Header: "Use Emergency Button",
-        TextColor: Color.Green,
+        TextColor: Color.Red,
         Position: EmergencyButtonLocation,
         Scale: 4,
         Clipping: Clipping.DoNotClip,

@@ -1,27 +1,15 @@
 import "../main.ostw";
 
 // Imposter variables
-playervar define canKill = false;
 playervar define killCooldown = 0;
 playervar define killBeamEffect;
 playervar define killBeamEffectCountdown;
-playervar define canVent = false;
 playervar define isVenting = false;
 playervar define releasedUlt;
 
 // Imposter team variables
 globalvar define canSabotage;
 globalvar define sabotageCooldown;
-
-/* Per-tick state update for imposters.
- */
-void imposterUpdate(ref define player) {
-    player.hudInteractString = "";
-    player.canVent = isVentNearby(player);
-    if (player.canVent) {
-        player.hudInteractString = "Vent";
-    }
-}
 
 void createImposterTargetAura(ref define player) {
     CreateEffect(
@@ -103,10 +91,13 @@ Event.OngoingPlayer
 if (gameState == GameState.Play)
 if (EventPlayer().role == PlayerRole.IMPOSTER)
 if (IsButtonHeld(EventPlayer(), Button.Interact))
-if (EventPlayer().canVent)
 {
-    EventPlayer().canKill = false;
-    EventPlayer().canVent = false;
+    define[] targetVents = FilteredArray(global_vents, DistanceBetween(ArrayElement(), EventPlayer()) <= VentInteractRadius);
+    if (targetVents.Length == 0) {
+        Wait(0.5);
+        return;
+    }
+
     EventPlayer().isVenting = !EventPlayer().isVenting;
     Wait(0.5);
 }
@@ -161,9 +152,6 @@ if (DistanceBetween(EventPlayer(), PlayerClosestToReticle(EventPlayer())) <= Kil
     define killTarget = PlayerClosestToReticle(EventPlayer());
     if (killTarget == null || !killTarget.isAlive || killTarget.role != PlayerRole.CREW) return;
 
-    EventPlayer().canVent = false;
-    EventPlayer().canKill = false;
-
     CreateBeamEffect(
         VisibleTo: AllPlayers(),
         BeamType: BeamType.BadBeam,
@@ -199,7 +187,7 @@ if (DistanceBetween(EventPlayer(), PlayerClosestToReticle(EventPlayer())) <= Kil
     }
 }
 
-rule: "Player: Imposter Update Loop"
+rule: "Player: Imposter Play Init"
 Event.OngoingPlayer
 if (gameState == GameState.Play)
 if (EventPlayer().role == PlayerRole.IMPOSTER)
@@ -207,14 +195,5 @@ if (EventPlayer().role == PlayerRole.IMPOSTER)
     EventPlayer().killCooldown = KillCooldown.Value;
     StopChasingVariable(EventPlayer().killCooldown);
     ChaseVariableAtRate(EventPlayer().killCooldown, 0, 1.0, RateChaseReevaluation.None);
-    EventPlayer().canKill = false;
-    EventPlayer().canVent = false;
     EventPlayer().isVenting = false;
-
-    while (gameState == GameState.Play) {
-        playerUpdate(EventPlayer());
-        imposterUpdate(EventPlayer());
-        renderUpdate(EventPlayer());
-        Wait(TICK);
-    }
 }

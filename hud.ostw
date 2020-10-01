@@ -1,7 +1,5 @@
 import "main.ostw";
 
-globalvar define debugHudString = "";
-
 void drawGlobalHUD() {
     CreateHudText(
         VisibleTo   : AllPlayers(),
@@ -100,7 +98,7 @@ void drawGlobalHUD() {
     );
 
     CreateHudText(
-        VisibleTo   : FilteredArray(AllPlayers(), ArrayElement().role == PlayerRole.IMPOSTER),
+        VisibleTo   : sabotageCooldown != 0 ? FilteredArray(AllPlayers(), ArrayElement().role == PlayerRole.IMPOSTER) : EmptyArray(),
         Header      : <"Sabotage Cooldown: <0>", RoundToInteger(sabotageCooldown, Rounding.Up)>,
         HeaderColor : Color.Red,
         Location    : Location.Top,
@@ -111,7 +109,7 @@ void drawGlobalHUD() {
 
     CreateHudText(
         VisibleTo   : FilteredArray(AllPlayers(), ArrayElement().role == PlayerRole.IMPOSTER),
-        Header      : <"<0> | Kill", InputBindingString(ButtonValue(Button.PrimaryFire))>,
+        Header      : <"<0> | Kill\n<1> | Sabotage", InputBindingString(ButtonValue(Button.PrimaryFire)), InputBindingString(ButtonValue(Button.Ultimate))>,
         HeaderColor : Color.Purple,
         Location    : Location.Right,
         Spectators  : Spectators.VisibleNever,
@@ -121,45 +119,13 @@ void drawGlobalHUD() {
 
     CreateHudText(
         VisibleTo   : AllPlayers(),
-        Header      : <"<0> | Use", InputBindingString(ButtonValue(Button.Interact))>,
+        Header      : <"<0> | Use\n<1> | Report", InputBindingString(ButtonValue(Button.Interact)), InputBindingString(ButtonValue(Button.Reload))>,
         HeaderColor : Color.Green,
         Location    : Location.Right,
         Spectators  : Spectators.VisibleNever,
         Reevaluation: HudTextRev.VisibleToAndString,
         SortOrder   : 4
     );
-
-    CreateHudText(
-        VisibleTo   : AllPlayers(),
-        Header      : <"<0> | Report", InputBindingString(ButtonValue(Button.Reload))>,
-        HeaderColor : Color.Orange,
-        Location    : Location.Right,
-        Spectators  : Spectators.VisibleNever,
-        Reevaluation: HudTextRev.VisibleToAndString,
-        SortOrder   : 5
-    );
-
-    CreateHudText(
-        VisibleTo   : FilteredArray(AllPlayers(), ArrayElement().role == PlayerRole.IMPOSTER),
-        Header      : <"<0> | Sabotage", InputBindingString(ButtonValue(Button.Ultimate))>,
-        HeaderColor : Color.Red,
-        Location    : Location.Right,
-        Spectators  : Spectators.VisibleNever,
-        Reevaluation: HudTextRev.VisibleToAndString,
-        SortOrder   : 6
-    );
-
-/* DEBUG
-    CreateHudText(
-        VisibleTo   : AllPlayers(),
-        Text        : <"Debug: <0>", debugHudString>,
-        TextColor   : Color.White,
-        Location    : Location.Top,
-        Spectators  : Spectators.VisibleNever,
-        Reevaluation: HudTextRev.String,
-        SortOrder   : 6
-    );
-*/
 
     CreateHudText(
         VisibleTo: HostPlayer(),
@@ -192,7 +158,7 @@ void drawPlayerHUD(ref define player) {
 
     CreateHudText(
         VisibleTo   : player.isTaskInProgress ? player : EmptyArray(),
-        Header      : <"Task Progress: <0> / <1>", RoundToInteger(player.taskProgressTime*10, Rounding.Down), player.interactableTask.Duration*10>,
+        Header      : <"Task Progress: <0> / <1>", RoundToInteger(player.taskProgressTime*10, Rounding.Down), player.taskInProgress.Duration*10>,
         HeaderColor : Color.Orange,
         Location    : Location.Top,
         Spectators  : Spectators.VisibleNever,
@@ -203,7 +169,7 @@ void drawPlayerHUD(ref define player) {
     CreateHudText(
         VisibleTo   : player.killCooldown != 0 ? player : EmptyArray(),
         Header      : <"Kill Cooldown: <0>", RoundToInteger(player.killCooldown, Rounding.Up)>,
-        HeaderColor : Color.Orange,
+        HeaderColor : Color.Purple,
         Location    : Location.Top,
         Spectators  : Spectators.VisibleNever,
         Reevaluation: HudTextRev.VisibleToAndString,

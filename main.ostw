@@ -69,8 +69,6 @@ if (gameState == GameState.Play) {
     drawPlayerHUD(EventPlayer());
     updateHudStrings(EventPlayer());
     resetSabotage();
-
-    DestroyEffect(EventPlayer().deathAura);
 }
 
 rule: "Start"
@@ -84,13 +82,10 @@ if (IsTrueForAll(AllPlayers(), HasSpawned(ArrayElement()) || IsDead(ArrayElement
 void reset() "Reset Game" {
     AllPlayers().incompleteTasks = EmptyArray();
     AllPlayers().completeTasks = EmptyArray();
-    AllPlayers().canKill = false;
-    AllPlayers().canVent = false;
-    AllPlayers().closestCorpse = null;
-    AllPlayers().isTaskInProgress = false;
     AllPlayers().isVenting = false;
     AllPlayers().hasCorpse = false;
     AllPlayers().hasButtonPress = true;
+    AllPlayers().isTaskInProgress = false;
     totalTaskCount = 0;
     totalCompleteTaskCount = 0;
 
