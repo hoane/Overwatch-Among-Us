@@ -7,7 +7,7 @@ Follow the instructions at https://github.com/ItsDeltin/Overwatch-Script-To-Work
 
 # Custom Game Codes
 
-## v0.1
+## v0.2
 Code: `1VMRP`
 
 ## Testing
